@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">打钟app</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <!--App Navigation-->
+    <string name="ClockingFragment">打钟</string>
+    <string name="EmployeeInfoFragment">员工信息</string>
+    <string name="LanguageFragment">语言</string>
+
+    <!--Clocking Fragment-->
+    <!--Top Section-->
+    <string name="fragment_clocking_header_employee_number">员工号码</string>
+    <string name="fragment_clocking_header_call_number">拨打号码</string>
+    <string name="fragment_clocking_header_work_number">工作项目代号</string>
+    <string name="fragment_clocking_content_text_default">空</string>
+
+    <!--Bottom Section-->
+    <string name="fragment_clocking_error_text_work_number">请选择至少一组工作项目代号</string>
+    <string name="fragment_clocking_check_in_button_text">上班</string>
+    <string name="fragment_clocking_check_out_button_text">下班</string>
+
+    <!--EmployeeInfo Fragment-->
+    <!--Employee Basic Info-->
+    <string name="fragment_employee_info_header_basic_info">基本信息</string>
+    <string name="fragment_employee_info_input_employee_num">员工号码</string>
+    <string name="fragment_employee_info_input_call_num">拨打号码</string>
+    <string name="fragment_employee_info_header_work_num">工作项目代号</string>
+
+    <string name="error_text_employee_number">请输入6位数员工号码</string>
+    <string name="error_text_call_number">请输入10位数拨打号码</string>
+    <string name="error_text_call_permission">请允许电话呼叫权限以使用此程序</string>
+</resources>
