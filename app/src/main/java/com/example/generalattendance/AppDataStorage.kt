@@ -72,8 +72,11 @@ class AppDataStorage(private val context: Context) {
     }
 
     val getLanguage: String = runBlocking {
+        val languageList = listOf("zh", "en")
+        val userDefaultLanguage = context.resources.configuration.locales.get(0).language
+        val appDefaultLanguage = if (languageList.contains(userDefaultLanguage)) userDefaultLanguage else "en"
         context.dataStore.data.map{
-                preferences -> preferences[LANGUAGE] ?: context.resources.configuration.locales.get(0).language
+            preferences -> preferences[LANGUAGE] ?: appDefaultLanguage
         }.first()
     }
 }

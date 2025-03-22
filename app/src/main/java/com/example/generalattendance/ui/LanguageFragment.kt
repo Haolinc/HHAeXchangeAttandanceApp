@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.generalattendance.AppDataStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private val LocalViewModel = compositionLocalOf<UIViewModel> {
     error("UIViewModel not provided")
@@ -38,20 +41,26 @@ fun LanguageFragment(navController: NavController, viewModel: UIViewModel){
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ){
-            LanguageSelectionButton("English", language, "", navController)
-            LanguageSelectionButton("中文", language, "zh", navController)
+            LanguageSelectionButton("English", language, "en", navController, appDataStorage)
+            LanguageSelectionButton("中文", language, "zh", navController, appDataStorage)
         }
     }
 }
 
 @Composable
-fun LanguageSelectionButton(text: String, currentLanguage: String, toChangeLanguage: String, navController: NavController){
+fun LanguageSelectionButton(text: String, currentLanguage: String, toChangeLanguage: String, navController: NavController, appDataStorage: AppDataStorage){
     val currentViewModel = LocalViewModel.current
+    val isSameLanguage = currentLanguage == toChangeLanguage
     Button(
-        colors = if (currentLanguage == toChangeLanguage) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(Color.LightGray),
+        colors = if (isSameLanguage) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(Color.LightGray),
         onClick =
         {
-            currentViewModel.setLanguage(toChangeLanguage)
+            if (!isSameLanguage) {
+                currentViewModel.setLanguage(toChangeLanguage)
+                CoroutineScope(Dispatchers.IO).launch {
+                    appDataStorage.setLanguage(toChangeLanguage)
+                }
+            }
             navController.popBackStack()
         },
         modifier = Modifier.width(250.dp).height(70.dp).padding(15.dp),
