@@ -34,21 +34,21 @@ private val LocalViewModel = compositionLocalOf<UIViewModel> {
 fun LanguageFragment(onNavigate: () -> Unit, viewModel: UIViewModel){
     CompositionLocalProvider(LocalViewModel provides viewModel) {
         val appDataStorage = AppDataStorage(LocalContext.current)
-        val language by viewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ){
-            LanguageSelectionButton("English", language, "en", onNavigate, appDataStorage)
-            LanguageSelectionButton("中文", language, "zh", onNavigate, appDataStorage)
+            LanguageSelectionButton("English", "en", onNavigate, appDataStorage)
+            LanguageSelectionButton("中文", "zh", onNavigate, appDataStorage)
         }
     }
 }
 
 @Composable
-fun LanguageSelectionButton(text: String, currentLanguage: String, toChangeLanguage: String, onNavigate: () -> Unit, appDataStorage: AppDataStorage){
+fun LanguageSelectionButton(text: String, toChangeLanguage: String, onNavigate: () -> Unit, appDataStorage: AppDataStorage){
     val currentViewModel = LocalViewModel.current
+    val currentLanguage by currentViewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
     val isSameLanguage = currentLanguage == toChangeLanguage
     Button(
         colors = if (isSameLanguage) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(Color.LightGray),
