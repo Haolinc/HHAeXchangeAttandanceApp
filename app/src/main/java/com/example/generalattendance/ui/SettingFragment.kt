@@ -22,18 +22,18 @@ fun SettingFragment(navController: NavController, settingRouteList: List<Navigat
     LazyColumn(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().padding(10.dp),
+        modifier = Modifier.fillMaxSize().padding(10.dp)
     ){
         items(settingRouteList){ element ->
-            SettingBox(element.route, element.stringResourceId, navController)
+            SettingBox({navController.navigate(element.route)}, element.stringResourceId)
         }
     }
 }
 
 @Composable
-fun SettingBox(route: String, stringResourceId: Int, navController: NavController){
+fun SettingBox(onNavigate: () -> Unit, stringResourceId: Int){
     Box(
-        modifier = Modifier.clickable(onClick = {navController.navigate(route)})
+        modifier = Modifier.clickable(onClick = onNavigate)
     ){
         Text(text = stringResource(stringResourceId), fontSize = 20.sp)
     }

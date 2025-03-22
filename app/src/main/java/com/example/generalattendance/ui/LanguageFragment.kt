@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.generalattendance.AppDataStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +31,7 @@ private val LocalViewModel = compositionLocalOf<UIViewModel> {
 }
 
 @Composable
-fun LanguageFragment(navController: NavController, viewModel: UIViewModel){
+fun LanguageFragment(onNavigate: () -> Unit, viewModel: UIViewModel){
     CompositionLocalProvider(LocalViewModel provides viewModel) {
         val appDataStorage = AppDataStorage(LocalContext.current)
         val language by viewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
@@ -41,14 +40,14 @@ fun LanguageFragment(navController: NavController, viewModel: UIViewModel){
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ){
-            LanguageSelectionButton("English", language, "en", navController, appDataStorage)
-            LanguageSelectionButton("中文", language, "zh", navController, appDataStorage)
+            LanguageSelectionButton("English", language, "en", onNavigate, appDataStorage)
+            LanguageSelectionButton("中文", language, "zh", onNavigate, appDataStorage)
         }
     }
 }
 
 @Composable
-fun LanguageSelectionButton(text: String, currentLanguage: String, toChangeLanguage: String, navController: NavController, appDataStorage: AppDataStorage){
+fun LanguageSelectionButton(text: String, currentLanguage: String, toChangeLanguage: String, onNavigate: () -> Unit, appDataStorage: AppDataStorage){
     val currentViewModel = LocalViewModel.current
     val isSameLanguage = currentLanguage == toChangeLanguage
     Button(
@@ -61,7 +60,7 @@ fun LanguageSelectionButton(text: String, currentLanguage: String, toChangeLangu
                     appDataStorage.setLanguage(toChangeLanguage)
                 }
             }
-            navController.popBackStack()
+            onNavigate()
         },
         modifier = Modifier.width(250.dp).height(70.dp).padding(15.dp),
     ) {

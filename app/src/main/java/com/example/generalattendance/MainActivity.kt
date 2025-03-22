@@ -138,7 +138,12 @@ class MainActivity : ComponentActivity() {
                     SettingFragment(navController, settingNavigationList)
                 }
                 composable(settingNavigationList[0].route) {
-                    LanguageFragment(navController, uiViewModel)
+                    LanguageFragment(
+                        {
+                            navController.popBackStack()
+                        },
+                        uiViewModel
+                    )
                 }
             }
         }
