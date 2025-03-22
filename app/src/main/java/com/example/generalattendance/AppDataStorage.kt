@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "data")
 
-class EmployeeInfoStorage(private val context: Context) {
+class AppDataStorage(private val context: Context) {
     val EMPLOYEE_NUM = stringPreferencesKey("employee_num")
     val CALL_NUM = stringPreferencesKey("call_num")
     val WORK_NUM = stringPreferencesKey("work_num")
@@ -20,7 +20,8 @@ class EmployeeInfoStorage(private val context: Context) {
 
     suspend fun setEmployeeNum(employeeNum: String){
         context.dataStore.edit { preferences ->
-            preferences[EMPLOYEE_NUM] = employeeNum
+            if (preferences[EMPLOYEE_NUM] != employeeNum)
+                preferences[EMPLOYEE_NUM] = employeeNum
         }
     }
 
@@ -32,7 +33,8 @@ class EmployeeInfoStorage(private val context: Context) {
 
     suspend fun setCallNum(callNum: String){
         context.dataStore.edit { preferences ->
-            preferences[CALL_NUM] = callNum
+            if (preferences[CALL_NUM] != callNum)
+                preferences[CALL_NUM] = callNum
         }
     }
 
@@ -44,7 +46,9 @@ class EmployeeInfoStorage(private val context: Context) {
 
     suspend fun setWorkNumList(workNumList: List<String>){
         context.dataStore.edit { preferences ->
-            preferences[WORK_NUM] = workNumList.joinToString(separator = ",")
+            val workNumStr = workNumList.joinToString(separator = ",")
+            if (preferences[WORK_NUM] != workNumStr)
+                preferences[WORK_NUM] = workNumStr
         }
     }
 
@@ -62,7 +66,8 @@ class EmployeeInfoStorage(private val context: Context) {
 
     suspend fun setLanguage(language: String){
         context.dataStore.edit { preferences ->
-            preferences[LANGUAGE] = language
+            if (preferences[LANGUAGE] != language)
+                preferences[LANGUAGE] = language
         }
     }
 

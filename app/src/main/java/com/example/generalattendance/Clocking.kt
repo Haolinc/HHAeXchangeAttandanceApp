@@ -19,13 +19,6 @@ class Clocking(private val employeeNum: String,
         )
     }
 
-    fun calculateTotalWaitTime(onClock: Boolean = true): Int {
-        val initialWaitTime = 38
-        if (onClock)
-            return initialWaitTime
-        return initialWaitTime + (workNumList.size + 1) * 7   // add 1 for 000 number set
-    }
-
     private fun pound(): String {
         return Uri.encode("#")
     }

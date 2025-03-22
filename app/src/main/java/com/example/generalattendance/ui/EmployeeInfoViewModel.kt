@@ -4,35 +4,27 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.generalattendance.EmployeeInfoStorage
+import androidx.lifecycle.distinctUntilChanged
+import com.example.generalattendance.AppDataStorage
 
 class EmployeeInfoViewModel(application: Application) : AndroidViewModel(application) {
-    private val employeeInfoStorage = EmployeeInfoStorage(getApplication())
-    private val _mutableWorkNumList = MutableLiveData(employeeInfoStorage.getWorkNumList)
-    private val _mutableEmployeeNum = MutableLiveData(employeeInfoStorage.getEmployeeNum)
-    private val _mutableCallNum = MutableLiveData(employeeInfoStorage.getCallNum)
-    private val _mutableLanguage = MutableLiveData(employeeInfoStorage.getLanguage)
+    private val appDataStorage = AppDataStorage(getApplication())
+    private val _mutableWorkNumList = MutableLiveData(appDataStorage.getWorkNumList)
+    private val _mutableEmployeeNum = MutableLiveData(appDataStorage.getEmployeeNum)
+    private val _mutableCallNum = MutableLiveData(appDataStorage.getCallNum)
 
     // Work Number List Functions
-    fun getWorkNumList(): LiveData<List<String>>{
-        return _mutableWorkNumList
+    fun getWorkNumList(): LiveData<List<String>> {
+        return _mutableWorkNumList.distinctUntilChanged()
     }
 
-    fun addWorkNum (workNum: String) {
-        val currentList = _mutableWorkNumList.value.orEmpty().toMutableList()
-        currentList.add(workNum)
-        _mutableWorkNumList.value = currentList
-    }
-
-    fun removeWorkNum (workNum: String) {
-        val currentList = _mutableWorkNumList.value.orEmpty().toMutableList()
-        currentList.remove(workNum)
-        _mutableWorkNumList.value = currentList
+    fun setWorkNumList(workNumList: List<String>) {
+        _mutableWorkNumList.value = workNumList
     }
 
     //Employee Number Functions
     fun getEmployeeNum (): LiveData<String> {
-        return _mutableEmployeeNum
+        return _mutableEmployeeNum.distinctUntilChanged()
     }
 
     fun setEmployeeNum (employeeNum: String) {
@@ -41,19 +33,11 @@ class EmployeeInfoViewModel(application: Application) : AndroidViewModel(applica
 
     //Employee Number Functions
     fun getCallNum (): LiveData<String>{
-        return _mutableCallNum
+        return _mutableCallNum.distinctUntilChanged()
     }
 
     fun setCallNum (callNum: String) {
         _mutableCallNum.value = callNum
     }
 
-    //Employee Number Functions
-    fun getLanguage (): LiveData<String>{
-        return _mutableLanguage
-    }
-
-    fun setLanguage (language: String) {
-        _mutableLanguage.value = language
-    }
 }

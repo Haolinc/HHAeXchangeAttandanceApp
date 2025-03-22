@@ -16,6 +16,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -25,28 +27,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 private val personalCareNumList = listOf("101", "102", "106", "107", "108", "110", "111", "112", "113", "117")
 private val nutrientNumList = listOf("202", "203", "204", "205", "300", "301", "411", "500", "501", "502", "506", "508", "509", "511")
-private lateinit var currentViewModel: EmployeeInfoViewModel
+private val LocalViewModel = compositionLocalOf<EmployeeInfoViewModel> {
+    error("EmployeeInfoViewModel not provided")
+}
 
 @Composable
 fun EmployeeInfoFragment(viewModel: EmployeeInfoViewModel){
-    currentViewModel = viewModel
-    SelectionPage()
+    CompositionLocalProvider(LocalViewModel provides viewModel) {
+        SelectionPage()
+    }
 }
 
 @Composable
 fun SelectionPage(){
-    val employeeNum by currentViewModel.getEmployeeNum().observeAsState(initial = "")
-    val callNum by currentViewModel.getCallNum().observeAsState(initial = "")
+    val appDataStorage = AppDataStorage(LocalContext.current)
+    val currentViewModel = LocalViewModel.current
+    val employeeNum by currentViewModel.getEmployeeNum().observeAsState("")
+    val callNum by currentViewModel.getCallNum().observeAsState("")
+    val workNumList by currentViewModel.getWorkNumList().observeAsState(emptyList())
     val localFocusManager = LocalFocusManager.current
     LazyColumn (
         modifier = Modifier
@@ -72,11 +85,16 @@ fun SelectionPage(){
             OutlinedTextField(
                 value = text,
                 onValueChange = {
-                    if (it.length <= 6)
+                    if (it.length <= 6) {
                         text = it
+                        if (it.length == 6) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                appDataStorage.setEmployeeNum(it)
+                            }
+                        }
+                        currentViewModel.setEmployeeNum(it)
+                    }
                     isError = it.length < 6
-                    currentViewModel.setEmployeeNum(text)
-
                 },
                 label = { Text(stringResource(R.string.fragment_employee_info_input_employee_num)) },
                 isError = isError,
@@ -102,10 +120,16 @@ fun SelectionPage(){
             OutlinedTextField(
                 value = text,
                 onValueChange = {
-                    if (it.length <= 10)
+                    if (it.length <= 10) {
                         text = it
+                        if (it.length == 10) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                appDataStorage.setCallNum(it)
+                            }
+                        }
+                        currentViewModel.setCallNum(it)
+                    }
                     isError = it.length < 10
-                    currentViewModel.setCallNum(text)
                 },
                 label = { Text(stringResource(R.string.fragment_employee_info_input_call_num)) },
                 isError = isError,
@@ -134,21 +158,21 @@ fun SelectionPage(){
             GeneralText("Personal Care")
         }
         item {
-            ButtonGrid(personalCareNumList)
+            ButtonGrid(personalCareNumList, appDataStorage)
         }
         // Header
         item {
             GeneralText("Nutrient")
         }
         item {
-            ButtonGrid(nutrientNumList)
+            ButtonGrid(nutrientNumList, appDataStorage)
         }
     }
 
 }
 
 @Composable
-fun ButtonGrid(buttonTextList: List<String>){
+fun ButtonGrid(buttonTextList: List<String>, appDataStorage: AppDataStorage){
     LazyVerticalGrid(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,15 +180,16 @@ fun ButtonGrid(buttonTextList: List<String>){
         columns = GridCells.Fixed(3),
     ) {
         items(buttonTextList) { item ->
-            DefaultButton(text = item)
+            DefaultButton(text = item, appDataStorage = appDataStorage)
         }
     }
 }
 
 @Composable
-fun DefaultButton(text: String){
-    val workNumList by currentViewModel.getWorkNumList().observeAsState(initial = emptyList())
-    Button(onClick = { selectWorkNum(text) },
+fun DefaultButton(text: String, appDataStorage: AppDataStorage){
+    val currentViewModel = LocalViewModel.current
+    val workNumList by currentViewModel.getWorkNumList().observeAsState(emptyList())
+    Button(onClick = { selectWorkNum(text, currentViewModel, workNumList, appDataStorage) },
         modifier = Modifier.padding(all = 5.dp),
         colors = if (workNumList.contains(text)) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(Color.LightGray)
     ){
@@ -173,17 +198,13 @@ fun DefaultButton(text: String){
 }
 
 
-private fun selectWorkNum(currentText: String){
-    val existInList = currentViewModel.getWorkNumList().value?.contains(currentText)
-    if (existInList == true){
-        currentViewModel.removeWorkNum(currentText)
-        println(currentViewModel.getWorkNumList().value.toString())
+private fun selectWorkNum(currentText: String, currentViewModel: EmployeeInfoViewModel, workList: List<String>, appDataStorage: AppDataStorage){
+    val existInList = workList.contains(currentText)
+    val newWorkList = if (existInList) workList - currentText else workList + currentText
+    currentViewModel.setWorkNumList(newWorkList)
+    CoroutineScope(Dispatchers.IO).launch {
+        appDataStorage.setWorkNumList(newWorkList)
     }
-    else{
-        currentViewModel.addWorkNum(currentText)
-        println(currentViewModel.getWorkNumList().value.toString())
-    }
-
 }
 
 @Composable

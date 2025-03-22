@@ -7,6 +7,7 @@
     <!--App Navigation-->
     <string name="ClockingFragment">Clocking</string>
     <string name="EmployeeInfoFragment">Employee Info</string>
+    <string name="SettingFragment">Setting</string>
     <string name="LanguageFragment">Language</string>
 
     <!--Clocking Fragment-->
@@ -18,8 +19,8 @@
 
     <!--Bottom Section-->
     <string name="fragment_clocking_error_text_work_number">Please Select At Least One Work Number</string>
-    <string name="fragment_clocking_check_in_button_text">Check In</string>
-    <string name="fragment_clocking_check_out_button_text">Check Out</string>
+    <string name="fragment_clocking_check_in_button_text">Check-In</string>
+    <string name="fragment_clocking_check_out_button_text">Check-Out</string>
 
     <!--EmployeeInfo Fragment-->
     <!--Employee Basic Info-->

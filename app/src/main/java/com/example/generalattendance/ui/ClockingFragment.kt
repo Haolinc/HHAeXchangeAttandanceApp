@@ -30,27 +30,21 @@ import androidx.compose.ui.unit.sp
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
 
-private lateinit var currentViewModel: EmployeeInfoViewModel
-private lateinit var wakeLock: WakeLock
-private lateinit var clocking: Clocking
 
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
-    currentViewModel = viewModel
-    val workNumList by currentViewModel.getWorkNumList().observeAsState(initial = emptyList())
-    val callNumber by currentViewModel.getCallNum().observeAsState(initial = "")
-    val employeeNumber by currentViewModel.getEmployeeNum().observeAsState(initial = "")
+    val workNumList by viewModel.getWorkNumList().observeAsState(emptyList())
+    val callNumber by viewModel.getCallNum().observeAsState("")
+    val employeeNumber by viewModel.getEmployeeNum().observeAsState("")
     val buttonState by remember (workNumList, employeeNumber, callNumber, isCallPermissionGranted) {
         derivedStateOf {
             workNumList.isNotEmpty() && employeeNumber.length == 6 && callNumber.length == 10 && isCallPermissionGranted
         }
     }
-    val sortedWorkNumList = workNumList.sorted()
-    clocking = Clocking(employeeNumber, callNumber, sortedWorkNumList)
     val context = LocalContext.current
 
     val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-    wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "attendance:wakelock")
+    val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "attendance:wakelock")
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -65,7 +59,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             EmployeeInfoSection(title = stringResource(R.string.fragment_clocking_header_employee_number), content = employeeNumText)
             val callNumText = if (callNumber == "") emptyDefaultText else callNumber
             EmployeeInfoSection(title = stringResource(R.string.fragment_clocking_header_call_number), content = callNumText)
-            val workNumText = if (sortedWorkNumList.isEmpty()) emptyDefaultText else sortedWorkNumList.toString()
+            val workNumText = if (workNumList.isEmpty()) emptyDefaultText else workNumList.sorted().toString()
             EmployeeInfoSection(title = stringResource(R.string.fragment_clocking_header_work_number), content = workNumText)
         }
 
@@ -85,14 +79,16 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
 
             ClockingButton(
                 {
-                    initiateCall(clocking.getFullOnClockUriCode(), true, context)
+                    val clocking = Clocking(employeeNumber, callNumber, workNumList.sorted())
+                    initiateCall(clocking.getFullOnClockUriCode(), true, context, wakeLock, workNumList.size)
                 },
                 stringResource(R.string.fragment_clocking_check_in_button_text),
                 buttonState
             )
             ClockingButton(
                 {
-                    initiateCall(clocking.getFullOffClockUriCode(), false, context)
+                    val clocking = Clocking(employeeNumber, callNumber, workNumList.sorted())
+                    initiateCall(clocking.getFullOffClockUriCode(), false, context, wakeLock, workNumList.size)
                 },
                 stringResource(R.string.fragment_clocking_check_out_button_text),
                 buttonState
@@ -102,27 +98,27 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
     }
 }
 
-private fun initiateCall(uri: Uri, isOnClock: Boolean, context: Context){
+private fun initiateCall(uri: Uri, isOnClock: Boolean, context: Context, wakeLock: WakeLock, workNumListSize: Int){
     val dialIntent = Intent(Intent.ACTION_CALL)
     dialIntent.setData(uri)
-    releaseLockingScreen()
-    startLockingScreen(isOnClock)
+    // Release lock
+    if (wakeLock.isHeld) {
+        wakeLock.release()
+    }
+    // Start locking
+    val lockTime = calculateTotalWaitTime(isOnClock, workNumListSize)
+    Log.i("MainActivity","locking for $lockTime seconds")
+    wakeLock.acquire(lockTime*1000L)
+
     context.startActivity(dialIntent)
     println(uri)
 }
 
-private fun startLockingScreen(isOnClock: Boolean) {
-    val test = clocking.calculateTotalWaitTime(isOnClock)
-    Log.i("MainActivity","locking for $test seconds")
-    wakeLock.acquire(clocking.calculateTotalWaitTime(isOnClock)*1000L)
-}
-
-private fun releaseLockingScreen() {
-    Log.i("MainActivity", "releasing lock")
-    if (wakeLock.isHeld) {
-        wakeLock.release()
-        Log.i("MainActivity", "lock released")
-    }
+private fun calculateTotalWaitTime(onClock: Boolean = true, workNumListSize: Int): Int {
+    val initialWaitTime = 38
+    if (onClock)
+        return initialWaitTime
+    return initialWaitTime + (workNumListSize + 1) * 7   // add 1 for 000 number set
 }
 
 @Composable
