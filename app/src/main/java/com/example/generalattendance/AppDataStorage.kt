@@ -3,6 +3,7 @@ package com.example.generalattendance
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,6 +18,7 @@ class AppDataStorage(private val context: Context) {
     val CALL_NUM = stringPreferencesKey("call_num")
     val WORK_NUM = stringPreferencesKey("work_num")
     val LANGUAGE = stringPreferencesKey("language")
+    val IS_FIRST_TIME = booleanPreferencesKey("is_first_time")
 
     suspend fun setEmployeeNum(employeeNum: String){
         context.dataStore.edit { preferences ->
@@ -77,6 +79,18 @@ class AppDataStorage(private val context: Context) {
         val appDefaultLanguage = if (languageList.contains(userDefaultLanguage)) userDefaultLanguage else "en"
         context.dataStore.data.map{
             preferences -> preferences[LANGUAGE] ?: appDefaultLanguage
+        }.first()
+    }
+
+    suspend fun setIsFirstTime(isFirstTime: Boolean){
+        context.dataStore.edit { preferences ->
+            preferences[IS_FIRST_TIME] = isFirstTime
+        }
+    }
+
+    val getIsFirstTime: Boolean = runBlocking {
+        context.dataStore.data.map{
+                preferences -> preferences[IS_FIRST_TIME] ?: true
         }.first()
     }
 }

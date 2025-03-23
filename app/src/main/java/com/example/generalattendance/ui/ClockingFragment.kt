@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -27,12 +28,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
+    val appDataStorage = AppDataStorage(LocalContext.current)
+    LaunchedEffect(true) {
+        CoroutineScope(Dispatchers.IO).launch{
+            if (appDataStorage.getIsFirstTime){
+                appDataStorage.setIsFirstTime(false)
+            }
+        }
+    }
     val workNumList by viewModel.getWorkNumList().observeAsState(emptyList())
     val callNumber by viewModel.getCallNum().observeAsState("")
     val employeeNumber by viewModel.getEmployeeNum().observeAsState("")
@@ -42,7 +55,6 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
         }
     }
     val context = LocalContext.current
-
     val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "attendance:wakelock")
 

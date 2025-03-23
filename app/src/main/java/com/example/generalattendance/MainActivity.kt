@@ -5,11 +5,13 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.collection.forEach
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -45,6 +47,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.generalattendance.enums.RouteEnum
 import com.example.generalattendance.ui.ClockingFragment
 import com.example.generalattendance.ui.EmployeeInfoFragment
 import com.example.generalattendance.ui.EmployeeInfoViewModel
@@ -57,13 +60,13 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     private val bottomNavigationList =
         listOf(
-            NavigationData("ClockingFragment", R.string.ClockingFragment),
-            NavigationData("EmployeeInfoFragment", R.string.EmployeeInfoFragment),
-            NavigationData("SettingFragment", R.string.SettingFragment),
+            NavigationData(RouteEnum.CLOCKING.name, R.string.ClockingFragment),
+            NavigationData(RouteEnum.EMPLOYEE_INFO.name, R.string.EmployeeInfoFragment),
+            NavigationData(RouteEnum.SETTING.name, R.string.SettingFragment),
         )
     private val settingNavigationList =
         listOf(
-            NavigationData("LanguageFragment", R.string.LanguageFragment),
+            NavigationData(RouteEnum.LANGUAGE.name, R.string.LanguageFragment),
         )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,7 +118,8 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val employeeInfoViewModel: EmployeeInfoViewModel = viewModel()
         val uiViewModel: UIViewModel = viewModel()
-        val appLocalization by uiViewModel.getLanguage().observeAsState(AppDataStorage(this).getLanguage)
+        val appDataStorage = AppDataStorage(this)
+        val appLocalization by uiViewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
         setAppLocale(appLocalization)
 
         Scaffold (bottomBar = {
@@ -123,22 +127,40 @@ class MainActivity : ComponentActivity() {
         }) { paddingValue ->
             NavHost(
                 navController = navController,
-                startDestination = bottomNavigationList[0].route,
+                startDestination =
+                    if (appDataStorage.getIsFirstTime)
+                        "${RouteEnum.LANGUAGE.name}/${RouteEnum.CLOCKING.name}"
+                    else
+                        RouteEnum.CLOCKING.name,
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(paddingValue),
             ) {
-                composable(bottomNavigationList[0].route) {
+                composable(RouteEnum.CLOCKING.name) {
                     ClockingFragment(employeeInfoViewModel, isCallPermissionGranted)
                 }
-                composable(bottomNavigationList[1].route) {
+                composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)
                 }
-                composable(bottomNavigationList[2].route) {
+                composable(RouteEnum.SETTING.name) {
                     SettingFragment(navController, settingNavigationList)
                 }
-                composable(settingNavigationList[0].route) {
-                    LanguageFragment(navController, uiViewModel)
+                composable("${RouteEnum.LANGUAGE.name}/{destination}") {backStackEntry ->
+                    LanguageFragment(
+                        {
+                            val nextDestination = backStackEntry.arguments?.getString("destination") ?: RouteEnum.SETTING.name
+                            navController.navigate(nextDestination){
+                                // Have to pop the current Language stack before going to next destination
+                                navController.popBackStack()
+
+                                popUpTo(nextDestination){
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        },
+                        uiViewModel
+                    )
                 }
             }
         }
