@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.generalattendance.enums.RouteEnum
 
 
 @Composable
@@ -25,7 +26,7 @@ fun SettingFragment(navController: NavController, settingRouteList: List<Navigat
         modifier = Modifier.fillMaxSize().padding(10.dp)
     ){
         items(settingRouteList){ element ->
-            SettingBox({navController.navigate(element.route)}, element.stringResourceId)
+            SettingBox({navController.navigate("${element.route}/${RouteEnum.SETTING}")}, element.stringResourceId)
         }
     }
 }

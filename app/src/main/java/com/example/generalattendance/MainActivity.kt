@@ -5,11 +5,13 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.collection.forEach
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -116,7 +118,8 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val employeeInfoViewModel: EmployeeInfoViewModel = viewModel()
         val uiViewModel: UIViewModel = viewModel()
-        val appLocalization by uiViewModel.getLanguage().observeAsState(AppDataStorage(this).getLanguage)
+        val appDataStorage = AppDataStorage(this)
+        val appLocalization by uiViewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
         setAppLocale(appLocalization)
 
         Scaffold (bottomBar = {
@@ -124,7 +127,11 @@ class MainActivity : ComponentActivity() {
         }) { paddingValue ->
             NavHost(
                 navController = navController,
-                startDestination = RouteEnum.CLOCKING.name,
+                startDestination =
+                    if (appDataStorage.getIsFirstTime)
+                        "${RouteEnum.LANGUAGE.name}/${RouteEnum.CLOCKING.name}"
+                    else
+                        RouteEnum.CLOCKING.name,
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(paddingValue),
@@ -138,10 +145,17 @@ class MainActivity : ComponentActivity() {
                 composable(RouteEnum.SETTING.name) {
                     SettingFragment(navController, settingNavigationList)
                 }
-                composable(RouteEnum.LANGUAGE.name) {
+                composable("${RouteEnum.LANGUAGE.name}/{destination}") {backStackEntry ->
                     LanguageFragment(
                         {
-                            navController.popBackStack()
+                            val nextDestination = backStackEntry.arguments?.getString("destination") ?: RouteEnum.SETTING.name
+                            println("current route: $nextDestination")
+                            navController.navigate(nextDestination){
+                                popUpTo(nextDestination){
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         },
                         uiViewModel
                     )
