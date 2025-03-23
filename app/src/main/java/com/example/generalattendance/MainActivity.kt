@@ -149,8 +149,10 @@ class MainActivity : ComponentActivity() {
                     LanguageFragment(
                         {
                             val nextDestination = backStackEntry.arguments?.getString("destination") ?: RouteEnum.SETTING.name
-                            println("current route: $nextDestination")
                             navController.navigate(nextDestination){
+                                // Have to pop the current Language stack before going to next destination
+                                navController.popBackStack()
+
                                 popUpTo(nextDestination){
                                     inclusive = true
                                 }
