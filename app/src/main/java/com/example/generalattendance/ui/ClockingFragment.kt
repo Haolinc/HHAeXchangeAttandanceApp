@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.generalattendance.AppDataStorage
@@ -166,5 +167,5 @@ fun EmployeeInfoSection(title: String, content: String){
 
 @Composable
 fun ErrorText(text: String){
-    Text(text = text, fontSize = 15.sp, color = Color.Red, modifier = Modifier.padding(5.dp))
+    Text(text = text, fontSize = 15.sp, color = Color.Red, textAlign = TextAlign.Center, modifier = Modifier.padding(5.dp))
 }
