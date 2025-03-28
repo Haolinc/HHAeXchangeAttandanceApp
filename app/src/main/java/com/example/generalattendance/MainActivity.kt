@@ -1,17 +1,16 @@
 package com.example.generalattendance
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.collection.forEach
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -53,6 +52,7 @@ import com.example.generalattendance.ui.EmployeeInfoFragment
 import com.example.generalattendance.ui.EmployeeInfoViewModel
 import com.example.generalattendance.ui.LanguageFragment
 import com.example.generalattendance.ui.NavigationData
+import com.example.generalattendance.ui.PermissionGuideFragment
 import com.example.generalattendance.ui.SettingFragment
 import com.example.generalattendance.ui.UIViewModel
 import java.util.Locale
@@ -67,6 +67,13 @@ class MainActivity : ComponentActivity() {
     private val settingNavigationList =
         listOf(
             NavigationData(RouteEnum.LANGUAGE.name, R.string.LanguageFragment),
+            NavigationData(RouteEnum.PERMISSION.name, R.string.PermissionFragment)
+        )
+
+    private val permissionList =
+        arrayOf(
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.CALL_PHONE
         )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,10 +85,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkCallPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.CALL_PHONE
-        ) == PackageManager.PERMISSION_GRANTED
+        return permissionList
+            .map{ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED}
+            .all{it}
     }
 
     @Composable
@@ -103,14 +109,14 @@ class MainActivity : ComponentActivity() {
             }
         }
         val requestPermissionLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission(),
-            onResult = { isGranted: Boolean ->
-                isCallPermissionGranted = isGranted // Update the State object's value
+            contract = ActivityResultContracts.RequestMultiplePermissions(),
+            onResult = { isGrantedMap ->
+                isCallPermissionGranted = !isGrantedMap.containsValue(false) // Update the State object's value
             }
         )
         LaunchedEffect(key1 = true) {
             if (!isCallPermissionGranted) {
-                requestPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+                requestPermissionLauncher.launch(permissionList)
             }
         }
 
@@ -161,6 +167,16 @@ class MainActivity : ComponentActivity() {
                         },
                         uiViewModel
                     )
+                }
+                composable("${RouteEnum.PERMISSION.name}/{destination}") {backStackEntry ->
+                    PermissionGuideFragment {
+                        val nextDestination = backStackEntry.arguments?.getString("destination")
+                            ?: RouteEnum.SETTING.name
+                        navController.navigate(nextDestination) {
+                            navController.popBackStack()
+                            launchSingleTop = true
+                        }
+                    }
                 }
             }
         }

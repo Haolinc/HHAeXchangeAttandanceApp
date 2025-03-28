@@ -3,10 +3,9 @@ package com.example.generalattendance.ui
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.PowerManager
-import android.os.PowerManager.WakeLock
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
+import com.example.generalattendance.RevertSettingService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,8 +57,6 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             workNumList.isNotEmpty() && employeeNumber.length == 6 && callNumber.length == 10 && isCallPermissionGranted
         }
     }
-    val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-    val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "attendance:wakelock")
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -96,7 +94,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             ClockingButton(
                 {
                     val clocking = Clocking(employeeNumber, callNumber, workNumList.sorted())
-                    initiateCall(clocking.getFullOnClockUriCode(), true, context, wakeLock, workNumList.size)
+                    initiateCall(clocking.getFullOnClockUriCode(), true, context, workNumList.size)
                 },
                 stringResource(R.string.fragment_clocking_check_in_button_text),
                 buttonState
@@ -104,7 +102,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             ClockingButton(
                 {
                     val clocking = Clocking(employeeNumber, callNumber, workNumList.sorted())
-                    initiateCall(clocking.getFullOffClockUriCode(), false, context, wakeLock, workNumList.size)
+                    initiateCall(clocking.getFullOffClockUriCode(), false, context, workNumList.size)
                 },
                 stringResource(R.string.fragment_clocking_check_out_button_text),
                 buttonState
@@ -114,20 +112,25 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
     }
 }
 
-private fun initiateCall(uri: Uri, isOnClock: Boolean, context: Context, wakeLock: WakeLock, workNumListSize: Int){
+private fun initiateCall(uri: Uri, isOnClock: Boolean, context: Context, workNumListSize: Int){
     val dialIntent = Intent(Intent.ACTION_CALL)
     dialIntent.setData(uri)
-    // Release lock
-    if (wakeLock.isHeld) {
-        wakeLock.release()
-    }
-    // Start locking
-    val lockTime = calculateTotalWaitTime(isOnClock, workNumListSize)
-    Log.i("MainActivity","locking for $lockTime seconds")
-    wakeLock.acquire(lockTime*1000L)
-
     context.startActivity(dialIntent)
     println(uri)
+
+    if (Settings.System.canWrite(context)){
+        Handler(Looper.getMainLooper()).postDelayed({
+            // Revert after the call ended
+            val serviceIntent = Intent(context, RevertSettingService::class.java)
+            serviceIntent.putExtra("defaultScreenTimeout", getSystemScreenTimeout(context))
+            context.startForegroundService(serviceIntent)
+
+            println("overwriting system default")
+            // Set system screen timeout
+            Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, calculateTotalWaitTime(isOnClock, workNumListSize) * 1000)
+            println("after overwrite the system timeout become ${getSystemScreenTimeout(context)}")
+        }, 2000)
+    }
 }
 
 private fun calculateTotalWaitTime(onClock: Boolean = true, workNumListSize: Int): Int {

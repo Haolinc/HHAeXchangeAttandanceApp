@@ -9,6 +9,7 @@
     <string name="EmployeeInfoFragment">Employee Info</string>
     <string name="SettingFragment">Setting</string>
     <string name="LanguageFragment">Language</string>
+    <string name="PermissionFragment">Permission</string>
 
     <!--Clocking Fragment-->
     <!--Top Section-->
@@ -34,4 +35,7 @@
     <string name="error_text_call_permission">Please Allow Phone Call Permission To Use App</string>
     <string name="error_text_work_number_greater_than_screen_timeout">Call Duration Might Exceed The Screen Timeout, Please Hold The Screen While At Call Or Grant Setting Permission To This App In Setting -> Permission</string>
 
+    <!--Toast Messages-->
+    <string name="toast_permission_granted">Permission Granted!</string>
+    <string name="toast_permission_already_granted">App Already Have Permission!</string>
 </resources>
