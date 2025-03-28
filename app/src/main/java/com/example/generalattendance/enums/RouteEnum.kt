@@ -9,5 +9,6 @@ enum class RouteEnum {
     SETTING,
 
     // Setting Navigation
-    LANGUAGE;
+    LANGUAGE,
+    PERMISSION;
 }

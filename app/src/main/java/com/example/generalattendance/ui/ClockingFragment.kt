@@ -3,9 +3,9 @@ package com.example.generalattendance.ui
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.PowerManager
-import android.os.PowerManager.WakeLock
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,11 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
+import com.example.generalattendance.RevertSettingService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,7 +40,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
-    val appDataStorage = AppDataStorage(LocalContext.current)
+    val context = LocalContext.current
+    val appDataStorage = AppDataStorage(context)
     LaunchedEffect(true) {
         CoroutineScope(Dispatchers.IO).launch{
             if (appDataStorage.getIsFirstTime){
@@ -54,9 +57,6 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             workNumList.isNotEmpty() && employeeNumber.length == 6 && callNumber.length == 10 && isCallPermissionGranted
         }
     }
-    val context = LocalContext.current
-    val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-    val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "attendance:wakelock")
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -81,7 +81,9 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             modifier = Modifier.weight(1f)
         ){
             if (workNumList.isEmpty())
-                ErrorText(text = stringResource(R.string.fragment_clocking_error_text_work_number))
+                ErrorText(text = stringResource(R.string.error_text_work_number))
+            if (calculateTotalWaitTime(false, workNumList.size)*1000 > getSystemScreenTimeout(context) && !Settings.System.canWrite(context))
+                ErrorText(text = stringResource(R.string.error_text_work_number_greater_than_screen_timeout))
             if (employeeNumber.length != 6)
                 ErrorText(text = stringResource(R.string.error_text_employee_number))
             if (callNumber.length != 10)
@@ -92,7 +94,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             ClockingButton(
                 {
                     val clocking = Clocking(employeeNumber, callNumber, workNumList.sorted())
-                    initiateCall(clocking.getFullOnClockUriCode(), true, context, wakeLock, workNumList.size)
+                    initiateCall(clocking.getFullOnClockUriCode(), true, context, workNumList.size)
                 },
                 stringResource(R.string.fragment_clocking_check_in_button_text),
                 buttonState
@@ -100,7 +102,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             ClockingButton(
                 {
                     val clocking = Clocking(employeeNumber, callNumber, workNumList.sorted())
-                    initiateCall(clocking.getFullOffClockUriCode(), false, context, wakeLock, workNumList.size)
+                    initiateCall(clocking.getFullOffClockUriCode(), false, context, workNumList.size)
                 },
                 stringResource(R.string.fragment_clocking_check_out_button_text),
                 buttonState
@@ -110,20 +112,25 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
     }
 }
 
-private fun initiateCall(uri: Uri, isOnClock: Boolean, context: Context, wakeLock: WakeLock, workNumListSize: Int){
+private fun initiateCall(uri: Uri, isOnClock: Boolean, context: Context, workNumListSize: Int){
     val dialIntent = Intent(Intent.ACTION_CALL)
     dialIntent.setData(uri)
-    // Release lock
-    if (wakeLock.isHeld) {
-        wakeLock.release()
-    }
-    // Start locking
-    val lockTime = calculateTotalWaitTime(isOnClock, workNumListSize)
-    Log.i("MainActivity","locking for $lockTime seconds")
-    wakeLock.acquire(lockTime*1000L)
-
     context.startActivity(dialIntent)
     println(uri)
+
+    if (Settings.System.canWrite(context)){
+        Handler(Looper.getMainLooper()).postDelayed({
+            // Revert after the call ended
+            val serviceIntent = Intent(context, RevertSettingService::class.java)
+            serviceIntent.putExtra("defaultScreenTimeout", getSystemScreenTimeout(context))
+            context.startForegroundService(serviceIntent)
+
+            println("overwriting system default")
+            // Set system screen timeout
+            Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, calculateTotalWaitTime(isOnClock, workNumListSize) * 1000)
+            println("after overwrite the system timeout become ${getSystemScreenTimeout(context)}")
+        }, 2000)
+    }
 }
 
 private fun calculateTotalWaitTime(onClock: Boolean = true, workNumListSize: Int): Int {
@@ -131,6 +138,10 @@ private fun calculateTotalWaitTime(onClock: Boolean = true, workNumListSize: Int
     if (onClock)
         return initialWaitTime
     return initialWaitTime + (workNumListSize + 1) * 7   // add 1 for 000 number set
+}
+
+private fun getSystemScreenTimeout(context: Context): Int{
+    return Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
 }
 
 @Composable
@@ -159,5 +170,5 @@ fun EmployeeInfoSection(title: String, content: String){
 
 @Composable
 fun ErrorText(text: String){
-    Text(text = text, fontSize = 15.sp, color = Color.Red, modifier = Modifier.padding(5.dp))
+    Text(text = text, fontSize = 15.sp, color = Color.Red, textAlign = TextAlign.Center, modifier = Modifier.padding(5.dp))
 }
