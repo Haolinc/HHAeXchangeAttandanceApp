@@ -18,7 +18,6 @@
     <string name="fragment_clocking_content_text_default">空</string>
 
     <!--Bottom Section-->
-    <string name="fragment_clocking_error_text_work_number">请选择至少一组工作项目代号</string>
     <string name="fragment_clocking_check_in_button_text">上班</string>
     <string name="fragment_clocking_check_out_button_text">下班</string>
 
@@ -31,5 +30,7 @@
 
     <string name="error_text_employee_number">请输入6位数员工号码</string>
     <string name="error_text_call_number">请输入10位数拨打号码</string>
+    <string name="error_text_work_number">请选择至少一组工作项目代号</string>
     <string name="error_text_call_permission">请允许电话呼叫权限以使用此程序</string>
+    <string name="error_text_work_number_greater_than_screen_timeout">打钟下班可能会超出系统息屏时间, 电话打钟时请按住屏幕防止息屏或者前往设置 -> 权限给予本程序覆写设置权限</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.PowerManager
 import android.os.PowerManager.WakeLock
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +39,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
-    val appDataStorage = AppDataStorage(LocalContext.current)
+    val context = LocalContext.current
+    val appDataStorage = AppDataStorage(context)
     LaunchedEffect(true) {
         CoroutineScope(Dispatchers.IO).launch{
             if (appDataStorage.getIsFirstTime){
@@ -54,7 +56,6 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             workNumList.isNotEmpty() && employeeNumber.length == 6 && callNumber.length == 10 && isCallPermissionGranted
         }
     }
-    val context = LocalContext.current
     val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "attendance:wakelock")
 
@@ -81,7 +82,9 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             modifier = Modifier.weight(1f)
         ){
             if (workNumList.isEmpty())
-                ErrorText(text = stringResource(R.string.fragment_clocking_error_text_work_number))
+                ErrorText(text = stringResource(R.string.error_text_work_number))
+            if (calculateTotalWaitTime(false, workNumList.size)*1000 > getSystemScreenTimeout(context) && !Settings.System.canWrite(context))
+                ErrorText(text = stringResource(R.string.error_text_work_number_greater_than_screen_timeout))
             if (employeeNumber.length != 6)
                 ErrorText(text = stringResource(R.string.error_text_employee_number))
             if (callNumber.length != 10)
@@ -131,6 +134,10 @@ private fun calculateTotalWaitTime(onClock: Boolean = true, workNumListSize: Int
     if (onClock)
         return initialWaitTime
     return initialWaitTime + (workNumListSize + 1) * 7   // add 1 for 000 number set
+}
+
+private fun getSystemScreenTimeout(context: Context): Int{
+    return Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
 }
 
 @Composable
