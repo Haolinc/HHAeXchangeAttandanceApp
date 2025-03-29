@@ -14,7 +14,7 @@
     <!--Clocking Fragment-->
     <!--Top Section-->
     <string name="fragment_clocking_header_employee_number">Employee Number</string>
-    <string name="fragment_clocking_header_call_number">Call Number</string>
+    <string name="fragment_clocking_header_dial_number">Dial Number</string>
     <string name="fragment_clocking_header_work_number">Work Number</string>
     <string name="fragment_clocking_content_text_default">Empty</string>
 
@@ -26,11 +26,11 @@
     <!--Employee Basic Info-->
     <string name="fragment_employee_info_header_basic_info">Basic Information</string>
     <string name="fragment_employee_info_input_employee_num">Employee Number</string>
-    <string name="fragment_employee_info_input_call_num">Call Number</string>
+    <string name="fragment_employee_info_input_dial_num">Dial Number</string>
     <string name="fragment_employee_info_header_work_num">Work Numbers</string>
 
     <string name="error_text_employee_number">Please Enter 6 Digit Employee Number</string>
-    <string name="error_text_call_number">Please Enter 10 Digit Call Number</string>
+    <string name="error_text_dial_number">Please Enter 10 Digit Dial Number</string>
     <string name="error_text_work_number">Please Select At Least One Work Number</string>
     <string name="error_text_call_permission">Please Allow Phone Call Permission To Use App</string>
     <string name="error_text_work_number_greater_than_screen_timeout">Call Duration Might Exceed The Screen Timeout, Please Hold The Screen While At Call Or Grant Setting Permission To This App In Setting -> Permission</string>

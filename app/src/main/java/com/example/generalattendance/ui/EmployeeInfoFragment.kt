@@ -58,7 +58,7 @@ fun SelectionPage(){
     val appDataStorage = AppDataStorage(LocalContext.current)
     val currentViewModel = LocalViewModel.current
     val employeeNum by currentViewModel.getEmployeeNum().observeAsState("")
-    val callNum by currentViewModel.getCallNum().observeAsState("")
+    val dialNum by currentViewModel.getDialNum().observeAsState("")
     val workNumList by currentViewModel.getWorkNumList().observeAsState(emptyList())
     val localFocusManager = LocalFocusManager.current
     LazyColumn (
@@ -113,9 +113,9 @@ fun SelectionPage(){
             )
         }
 
-        //Call Number Composable
+        //Dial Number Composable
         item{
-            var text by remember {mutableStateOf(callNum)}
+            var text by remember {mutableStateOf(dialNum)}
             var isError by remember { mutableStateOf(false) }
             OutlinedTextField(
                 value = text,
@@ -124,20 +124,20 @@ fun SelectionPage(){
                         text = it
                         if (it.length == 10) {
                             CoroutineScope(Dispatchers.IO).launch {
-                                appDataStorage.setCallNum(it)
+                                appDataStorage.setDialNum(it)
                             }
                         }
-                        currentViewModel.setCallNum(it)
+                        currentViewModel.setDialNum(it)
                     }
                     isError = it.length < 10
                 },
-                label = { Text(stringResource(R.string.fragment_employee_info_input_call_num)) },
+                label = { Text(stringResource(R.string.fragment_employee_info_input_dial_num)) },
                 isError = isError,
                 supportingText = {
                     if (isError) {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.error_text_call_number),
+                            text = stringResource(R.string.error_text_dial_number),
                             color = Color.Red
                         )
                     }
@@ -153,17 +153,17 @@ fun SelectionPage(){
         item{
             HorizontalDivider(color = Color.Black, thickness = 2.dp)
         }
-        // Header
-        item {
-            GeneralText("Personal Care")
-        }
+//        // Header
+//        item {
+//            GeneralText("Personal Care")
+//        }
         item {
             ButtonGrid(personalCareNumList, appDataStorage)
         }
-        // Header
-        item {
-            GeneralText("Nutrient")
-        }
+//        // Header
+//        item {
+//            GeneralText("Nutrient")
+//        }
         item {
             ButtonGrid(nutrientNumList, appDataStorage)
         }

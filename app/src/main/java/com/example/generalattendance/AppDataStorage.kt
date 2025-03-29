@@ -15,7 +15,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "da
 
 class AppDataStorage(private val context: Context) {
     val EMPLOYEE_NUM = stringPreferencesKey("employee_num")
-    val CALL_NUM = stringPreferencesKey("call_num")
+    val DIAL_NUM = stringPreferencesKey("dial_num")
     val WORK_NUM = stringPreferencesKey("work_num")
     val LANGUAGE = stringPreferencesKey("language")
     val IS_FIRST_TIME = booleanPreferencesKey("is_first_time")
@@ -33,16 +33,16 @@ class AppDataStorage(private val context: Context) {
         }.first()
     }
 
-    suspend fun setCallNum(callNum: String){
+    suspend fun setDialNum(dialNum: String){
         context.dataStore.edit { preferences ->
-            if (preferences[CALL_NUM] != callNum)
-                preferences[CALL_NUM] = callNum
+            if (preferences[DIAL_NUM] != dialNum)
+                preferences[DIAL_NUM] = dialNum
         }
     }
 
-    val getCallNum: String = runBlocking {
+    val getDialNum: String = runBlocking {
         context.dataStore.data.map{
-                preferences -> preferences[CALL_NUM] ?: ""
+                preferences -> preferences[DIAL_NUM] ?: ""
         }.first()
     }
 

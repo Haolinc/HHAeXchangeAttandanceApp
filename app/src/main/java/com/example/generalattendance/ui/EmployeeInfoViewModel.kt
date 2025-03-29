@@ -11,7 +11,7 @@ class EmployeeInfoViewModel(application: Application) : AndroidViewModel(applica
     private val appDataStorage = AppDataStorage(getApplication())
     private val _mutableWorkNumList = MutableLiveData(appDataStorage.getWorkNumList)
     private val _mutableEmployeeNum = MutableLiveData(appDataStorage.getEmployeeNum)
-    private val _mutableCallNum = MutableLiveData(appDataStorage.getCallNum)
+    private val _mutableDialNum = MutableLiveData(appDataStorage.getDialNum)
 
     // Work Number List Functions
     fun getWorkNumList(): LiveData<List<String>> {
@@ -32,12 +32,12 @@ class EmployeeInfoViewModel(application: Application) : AndroidViewModel(applica
     }
 
     //Employee Number Functions
-    fun getCallNum (): LiveData<String>{
-        return _mutableCallNum.distinctUntilChanged()
+    fun getDialNum (): LiveData<String>{
+        return _mutableDialNum.distinctUntilChanged()
     }
 
-    fun setCallNum (callNum: String) {
-        _mutableCallNum.value = callNum
+    fun setDialNum (dialNum: String) {
+        _mutableDialNum.value = dialNum
     }
 
 }
