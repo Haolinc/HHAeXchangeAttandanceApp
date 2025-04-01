@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,11 +18,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,7 +35,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.generalattendance.AppDataStorage
+import com.example.generalattendance.CallListener
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
 import com.example.generalattendance.RevertSettingService
@@ -40,10 +47,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+private const val LOG_TAG = "Clocking"
+
 @Composable
-fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
+fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean, navController: NavController){
     val context = LocalContext.current
-    val appDataStorage = AppDataStorage(context)
+    val appDataStorage = remember { AppDataStorage(context) }
+    var isCallStateIdle by remember{ mutableStateOf(false) }
+    val callListener = remember {
+        CallListener(
+            context = context,
+            onCallStateIdle = {isCallStateIdle = true; Log.i(LOG_TAG, "isCallStateIdle to true")},
+            onCallStateOffHook = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")},
+            onCallStateRinging = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")}
+        )
+    }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     LaunchedEffect(true) {
         CoroutineScope(Dispatchers.IO).launch{
             if (appDataStorage.getIsFirstTime){
@@ -51,12 +70,26 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             }
         }
     }
+    DisposableEffect(navBackStackEntry) {
+        if (navBackStackEntry != null) {
+            callListener.register()
+            Log.i(LOG_TAG, "register Call Listener")
+        }
+        onDispose {
+            callListener.unregister()
+            Log.i(LOG_TAG, "unregister Call Listener")
+        }
+    }
     val workNumList by viewModel.getWorkNumList().observeAsState(emptyList())
     val dialNumber by viewModel.getDialNum().observeAsState("")
     val employeeNumber by viewModel.getEmployeeNum().observeAsState("")
-    val buttonState by remember (workNumList, employeeNumber, dialNumber, isCallPermissionGranted) {
+    val buttonState by remember (workNumList, employeeNumber, dialNumber, isCallPermissionGranted, isCallStateIdle) {
         derivedStateOf {
-            workNumList.isNotEmpty() && employeeNumber.length == 6 && dialNumber.length == 10 && isCallPermissionGranted
+            workNumList.isNotEmpty() &&
+                    employeeNumber.length == 6 &&
+                    dialNumber.length == 10 &&
+                    isCallPermissionGranted &&
+                    isCallStateIdle
         }
     }
 

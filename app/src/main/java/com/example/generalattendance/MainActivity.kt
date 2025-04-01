@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
                     .padding(paddingValue),
             ) {
                 composable(RouteEnum.CLOCKING.name) {
-                    ClockingFragment(employeeInfoViewModel, isCallPermissionGranted)
+                    ClockingFragment(employeeInfoViewModel, isCallPermissionGranted, navController)
                 }
                 composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)
