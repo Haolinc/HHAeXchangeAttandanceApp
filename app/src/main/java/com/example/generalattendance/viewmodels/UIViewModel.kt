@@ -1,4 +1,4 @@
-package com.example.generalattendance.ui
+package com.example.generalattendance.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

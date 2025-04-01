@@ -35,10 +35,10 @@ import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
 import com.example.generalattendance.RevertSettingService
+import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
@@ -193,7 +193,7 @@ private fun calculateTotalWaitTime(onClock: Boolean = true, workNumListSize: Int
     val initialWaitTime = 38
     if (onClock)
         return initialWaitTime
-    return initialWaitTime + (workNumListSize + 1) * 7   // add 1 for 000 number set
+    return initialWaitTime + (workNumListSize + 1) * 8   // add 1 for 000 number set
 }
 
 private fun getSystemScreenTimeout(context: Context): Int{

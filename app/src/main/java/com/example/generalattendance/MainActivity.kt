@@ -1,7 +1,6 @@
 package com.example.generalattendance
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -49,12 +48,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.generalattendance.enums.RouteEnum
 import com.example.generalattendance.ui.ClockingFragment
 import com.example.generalattendance.ui.EmployeeInfoFragment
-import com.example.generalattendance.ui.EmployeeInfoViewModel
+import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
 import com.example.generalattendance.ui.LanguageFragment
 import com.example.generalattendance.ui.NavigationData
 import com.example.generalattendance.ui.PermissionGuideFragment
 import com.example.generalattendance.ui.SettingFragment
-import com.example.generalattendance.ui.UIViewModel
+import com.example.generalattendance.viewmodels.UIViewModel
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
