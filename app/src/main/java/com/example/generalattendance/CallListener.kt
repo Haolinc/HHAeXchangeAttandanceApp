@@ -18,44 +18,55 @@ class CallListener(
     private val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     private var telephonyCallback: TelephonyCallback? = null
     private var phoneStateListener: PhoneStateListener? = null
+    private var isRegistered = false
 
     fun register(){
-        Log.i(LOG_TAG, "call listener registering")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            telephonyCallback = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
-                override fun onCallStateChanged(state: Int) {
-                    processCallStateFunction(state)
+        if (!isRegistered) {
+            Log.i(LOG_TAG, "call listener registering")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephonyCallback =
+                    object : TelephonyCallback(), TelephonyCallback.CallStateListener {
+                        override fun onCallStateChanged(state: Int) {
+                            processCallStateFunction(state)
+                        }
+                    }
+                telephonyManager.registerTelephonyCallback(
+                    context.mainExecutor,
+                    telephonyCallback!!
+                )
+                Log.i(LOG_TAG, "SDK >= 31 call listener registered")
+            } else {
+                phoneStateListener = object : PhoneStateListener() {
+                    @Deprecated("Deprecated in Java")
+                    override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                        processCallStateFunction(state)
+                    }
                 }
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
+                Log.i(LOG_TAG, "SDK < 31 call listener registered")
             }
-            telephonyManager.registerTelephonyCallback(context.mainExecutor, telephonyCallback!!)
-            Log.i(LOG_TAG, "SDK >= 31 call listener registered")
-        } else {
-            phoneStateListener = object : PhoneStateListener() {
-                @Deprecated("Deprecated in Java")
-                override fun onCallStateChanged(state: Int, phoneNumber: String?) {
-                    processCallStateFunction(state)
-                }
-            }
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE)
-            Log.i(LOG_TAG, "SDK < 31 call listener registered")
         }
+        isRegistered = true
     }
 
     fun unregister(){
-        Log.i(LOG_TAG, "call listener unregistered")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            telephonyCallback?.let {
-                telephonyManager.unregisterTelephonyCallback(it)
-                telephonyCallback = null
-                Log.i(LOG_TAG, "SDK >= 31 call listener unregistered")
-            }
-        } else {
-            phoneStateListener?.let{
-                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
-                phoneStateListener = null
-                Log.i(LOG_TAG, "SDK < 31 call listener unregistered")
+        if (isRegistered) {
+            Log.i(LOG_TAG, "call listener unregistered")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephonyCallback?.let {
+                    telephonyManager.unregisterTelephonyCallback(it)
+                    telephonyCallback = null
+                    Log.i(LOG_TAG, "SDK >= 31 call listener unregistered")
+                }
+            } else {
+                phoneStateListener?.let {
+                    telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
+                    phoneStateListener = null
+                    Log.i(LOG_TAG, "SDK < 31 call listener unregistered")
+                }
             }
         }
+        isRegistered = false
     }
 
     private fun processCallStateFunction(state: Int){

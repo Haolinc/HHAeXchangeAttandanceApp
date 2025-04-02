@@ -35,6 +35,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.CallListener
 import com.example.generalattendance.Clocking
@@ -69,10 +72,33 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
     }
     DisposableEffect(Unit) {
         callListener.register()
-        Log.i(LOG_TAG, "register Call Listener")
         onDispose {
             callListener.unregister()
-            Log.i(LOG_TAG, "unregister Call Listener")
+        }
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.i(LOG_TAG, "Register at onResume")
+                    callListener.register()
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    Log.i(LOG_TAG, "Unregister at onPause")
+                    callListener.unregister()
+                }
+                Lifecycle.Event.ON_STOP -> {
+                    Log.i(LOG_TAG, "Unregister at onStop")
+                    callListener.unregister()
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            Log.i(LOG_TAG, "Lifecycle Owner Observer Removed")
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
     val workNumList by viewModel.getWorkNumList().observeAsState(emptyList())
