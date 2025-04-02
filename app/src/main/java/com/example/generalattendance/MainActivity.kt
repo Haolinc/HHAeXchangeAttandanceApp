@@ -113,7 +113,7 @@ class MainActivity : ComponentActivity() {
                 isCallPermissionGranted = !isGrantedMap.containsValue(false) // Update the State object's value
             }
         )
-        LaunchedEffect(key1 = true) {
+        LaunchedEffect(Unit) {
             if (!isCallPermissionGranted) {
                 requestPermissionLauncher.launch(permissionList)
             }
@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val employeeInfoViewModel: EmployeeInfoViewModel = viewModel()
         val uiViewModel: UIViewModel = viewModel()
-        val appDataStorage = AppDataStorage(this)
+        val appDataStorage = remember{ AppDataStorage(this) }
         val appLocalization by uiViewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
         setAppLocale(appLocalization)
 
@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
                     .padding(paddingValue),
             ) {
                 composable(RouteEnum.CLOCKING.name) {
-                    ClockingFragment(employeeInfoViewModel, isCallPermissionGranted, navController)
+                    ClockingFragment(employeeInfoViewModel, isCallPermissionGranted)
                 }
                 composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)
@@ -185,10 +185,11 @@ class MainActivity : ComponentActivity() {
     fun BottomNavigation(navController: NavController) {
         val selectedIcons = listOf(Icons.Filled.Call, Icons.Filled.AccountCircle, Icons.Filled.Settings)
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
+        val currentNavigationTop = navBackStackEntry?.destination
+        val currentRoute = currentNavigationTop?.route
         val routeList = bottomNavigationList.map{navData -> navData.route}
         AnimatedVisibility(
-            visible = routeList.contains(currentDestination?.route),
+            visible = routeList.contains(currentRoute),
             enter = EnterTransition.None,
             exit = ExitTransition.None,
             content = {
@@ -205,11 +206,13 @@ class MainActivity : ComponentActivity() {
                             {
                                 Text(stringResource(item.stringResourceId))
                             },
-                            selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                            selected = currentNavigationTop?.hierarchy?.any { it.route == item.route } == true,
                             onClick = {
-                                if (currentDestination!!.route != item.route) {
-                                    navController.popBackStack()
+                                if (currentRoute != item.route) {
                                     navController.navigate(item.route) {
+                                        popUpTo(currentRoute!!){
+                                            inclusive = true
+                                        }
                                         launchSingleTop = true
                                     }
                                 }

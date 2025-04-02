@@ -35,8 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.CallListener
 import com.example.generalattendance.Clocking
@@ -50,7 +48,7 @@ import kotlinx.coroutines.launch
 private const val LOG_TAG = "Clocking"
 
 @Composable
-fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean, navController: NavController){
+fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
     val context = LocalContext.current
     val appDataStorage = remember { AppDataStorage(context) }
     var isCallStateIdle by remember{ mutableStateOf(false) }
@@ -62,19 +60,16 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             onCallStateRinging = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")}
         )
     }
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    LaunchedEffect(true) {
+    LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO).launch{
             if (appDataStorage.getIsFirstTime){
                 appDataStorage.setIsFirstTime(false)
             }
         }
     }
-    DisposableEffect(navBackStackEntry) {
-        if (navBackStackEntry != null) {
-            callListener.register()
-            Log.i(LOG_TAG, "register Call Listener")
-        }
+    DisposableEffect(Unit) {
+        callListener.register()
+        Log.i(LOG_TAG, "register Call Listener")
         onDispose {
             callListener.unregister()
             Log.i(LOG_TAG, "unregister Call Listener")
