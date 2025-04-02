@@ -41,8 +41,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-private val personalCareNumList = listOf("101", "102", "106", "107", "108", "110", "111", "112", "113", "117")
-private val nutrientNumList = listOf("202", "203", "204", "205", "300", "301", "411", "500", "501", "502", "506", "508", "509", "511")
+private val personalCareNumList = listOf("100", "101", "102", "103", "106", "107", "108", "109", "110", "111", "112", "113", "114", "115", "116", "117")
+private val nutritionNumList = listOf("201", "202", "203", "204", "205", "206", "207", "208")
+private val activityNumList = listOf("300", "301", "302", "305", "306", "311")
+private val houseKeepingNumList = listOf("409", "410", "411", "413", "500", "501")
+private val specialNeedsNumList = listOf("502", "506", "508", "509", "511", "514")
+private val workNumMap = mapOf(
+    "Personal Care Tasks" to personalCareNumList,
+    "Nutrition" to nutritionNumList,
+    "Activity" to activityNumList,
+    "Housekeeping" to houseKeepingNumList,
+    "SpecialNeeds" to specialNeedsNumList
+)
 private val LocalViewModel = compositionLocalOf<EmployeeInfoViewModel> {
     error("EmployeeInfoViewModel not provided")
 }
@@ -60,7 +70,6 @@ fun SelectionPage(){
     val currentViewModel = LocalViewModel.current
     val employeeNum by currentViewModel.getEmployeeNum().observeAsState("")
     val dialNum by currentViewModel.getDialNum().observeAsState("")
-    val workNumList by currentViewModel.getWorkNumList().observeAsState(emptyList())
     val localFocusManager = LocalFocusManager.current
     LazyColumn (
         modifier = Modifier
@@ -73,14 +82,12 @@ fun SelectionPage(){
             },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item {
+        item("Basic Information Header") {
             GeneralText(stringResource(R.string.fragment_employee_info_header_basic_info))
-        }
-        item{
             HorizontalDivider(color = Color.Black, thickness = 2.dp)
         }
         //Employee Number Composable
-        item{
+        item("Employee Number") {
             var text by remember {mutableStateOf(employeeNum)}
             var isError by remember { mutableStateOf(false) }
             OutlinedTextField(
@@ -115,7 +122,7 @@ fun SelectionPage(){
         }
 
         //Dial Number Composable
-        item{
+        item("Dial Number") {
             var text by remember {mutableStateOf(dialNum)}
             var isError by remember { mutableStateOf(false) }
             OutlinedTextField(
@@ -148,25 +155,15 @@ fun SelectionPage(){
                 modifier = Modifier.padding(top = 10.dp, bottom = 50.dp)
             )
         }
-        item {
+        item ("Work Number Header") {
             GeneralText(stringResource(R.string.fragment_employee_info_header_work_num))
-        }
-        item{
             HorizontalDivider(color = Color.Black, thickness = 2.dp)
         }
-//        // Header
-//        item {
-//            GeneralText("Personal Care")
-//        }
-        item {
-            ButtonGrid(personalCareNumList, appDataStorage)
-        }
-//        // Header
-//        item {
-//            GeneralText("Nutrient")
-//        }
-        item {
-            ButtonGrid(nutrientNumList, appDataStorage)
+
+        workNumMap.map{(headerText, currentWorkNumList) ->
+            item (headerText){
+                WorkNumSelection(headerText, currentWorkNumList, appDataStorage)
+            }
         }
     }
 
@@ -211,4 +208,10 @@ private fun selectWorkNum(currentText: String, currentViewModel: EmployeeInfoVie
 @Composable
 fun GeneralText(text: String){
     Text(text = text, Modifier.padding(10.dp), fontSize = 20.sp)
+}
+
+@Composable
+fun WorkNumSelection(headerText: String, currentWorkNumList: List<String>, appDataStorage: AppDataStorage){
+    GeneralText(headerText)
+    ButtonGrid(currentWorkNumList, appDataStorage)
 }
