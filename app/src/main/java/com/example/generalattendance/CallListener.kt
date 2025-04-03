@@ -21,7 +21,7 @@ class CallListener(
     private var isRegistered = false
 
     fun register(){
-        if (!isRegistered) {
+        if (!isRegistered && PermissionHelper.checkCallPermission(context)) {
             Log.i(LOG_TAG, "call listener registering")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 telephonyCallback =
@@ -50,7 +50,7 @@ class CallListener(
     }
 
     fun unregister(){
-        if (isRegistered) {
+        if (isRegistered && PermissionHelper.checkCallPermission(context)) {
             Log.i(LOG_TAG, "call listener unregistered")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 telephonyCallback?.let {

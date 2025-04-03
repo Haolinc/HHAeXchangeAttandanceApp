@@ -1,14 +1,12 @@
 package com.example.generalattendance
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
@@ -25,19 +23,11 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -69,56 +59,21 @@ class MainActivity : ComponentActivity() {
             NavigationData(RouteEnum.PERMISSION.name, R.string.PermissionFragment)
         )
 
-    private val permissionList =
-        arrayOf(
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.CALL_PHONE
-        )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+            PermissionHelper.storeResult(!isGranted.containsValue(false)) // Delegate to Helper
+        }
+        PermissionHelper.initializeLauncher(permissionLauncher)
         enableEdgeToEdge()
         setContent {
             AppNavigation()
         }
     }
 
-    private fun checkCallPermission(): Boolean {
-        return permissionList
-            .map{ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED}
-            .all{it}
-    }
 
     @Composable
     fun AppNavigation() {
-        // Permission
-        var isCallPermissionGranted by remember { mutableStateOf(checkCallPermission()) }
-        val lifecycleOwner = LocalLifecycleOwner.current
-        if (!isCallPermissionGranted) {
-            DisposableEffect(lifecycleOwner) {
-                val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) {
-                        isCallPermissionGranted = checkCallPermission()
-                    }
-                }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose {
-                    lifecycleOwner.lifecycle.removeObserver(observer)
-                }
-            }
-        }
-        val requestPermissionLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestMultiplePermissions(),
-            onResult = { isGrantedMap ->
-                isCallPermissionGranted = !isGrantedMap.containsValue(false) // Update the State object's value
-            }
-        )
-        LaunchedEffect(Unit) {
-            if (!isCallPermissionGranted) {
-                requestPermissionLauncher.launch(permissionList)
-            }
-        }
-
         // Main Navigation UI
         val navController = rememberNavController()
         val employeeInfoViewModel: EmployeeInfoViewModel = viewModel()
@@ -142,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     .padding(paddingValue),
             ) {
                 composable(RouteEnum.CLOCKING.name) {
-                    ClockingFragment(employeeInfoViewModel, isCallPermissionGranted)
+                    ClockingFragment(employeeInfoViewModel)
                 }
                 composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)

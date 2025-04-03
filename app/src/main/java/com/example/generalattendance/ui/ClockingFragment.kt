@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +42,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.CallListener
 import com.example.generalattendance.Clocking
+import com.example.generalattendance.PermissionHelper
 import com.example.generalattendance.R
 import com.example.generalattendance.RevertSettingService
 import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
@@ -51,10 +53,11 @@ import kotlinx.coroutines.launch
 private const val LOG_TAG = "Clocking"
 
 @Composable
-fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: Boolean){
+fun ClockingFragment(viewModel: EmployeeInfoViewModel){
     val context = LocalContext.current
     val appDataStorage = remember { AppDataStorage(context) }
     var isCallStateIdle by remember{ mutableStateOf(false) }
+    var isCallPermissionGranted by remember { mutableStateOf(PermissionHelper.checkCallPermission(context)) }
     val callListener = remember {
         CallListener(
             context = context,
@@ -63,14 +66,20 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel, isCallPermissionGranted: 
             onCallStateRinging = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")}
         )
     }
+    // Fetch permission if not granted
     LaunchedEffect(Unit) {
+        if (!isCallPermissionGranted){
+            PermissionHelper.requestCallPermission {
+                isCallPermissionGranted = it
+            }
+        }
         CoroutineScope(Dispatchers.IO).launch{
             if (appDataStorage.getIsFirstTime){
                 appDataStorage.setIsFirstTime(false)
             }
         }
     }
-    DisposableEffect(Unit) {
+    DisposableEffect(isCallPermissionGranted) {
         callListener.register()
         onDispose {
             callListener.unregister()
