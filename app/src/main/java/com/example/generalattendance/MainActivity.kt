@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
@@ -36,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.generalattendance.enums.RouteEnum
+import com.example.generalattendance.permission.PermissionHelper
 import com.example.generalattendance.ui.ClockingFragment
 import com.example.generalattendance.ui.EmployeeInfoFragment
 import com.example.generalattendance.viewmodels.EmployeeInfoViewModel

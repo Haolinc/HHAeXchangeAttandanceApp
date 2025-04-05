@@ -6,6 +6,8 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.util.Log
+import com.example.generalattendance.permission.CallPermissionChecker
+import com.example.generalattendance.permission.PermissionChecker
 
 private const val LOG_TAG = "Call Listener"
 
@@ -19,9 +21,10 @@ class CallListener(
     private var telephonyCallback: TelephonyCallback? = null
     private var phoneStateListener: PhoneStateListener? = null
     private var isRegistered = false
+    private val callPermissionChecker: PermissionChecker = CallPermissionChecker()
 
     fun register(){
-        if (!isRegistered && PermissionHelper.checkCallPermission(context)) {
+        if (!isRegistered && callPermissionChecker.hasPermission(context)) {
             Log.i(LOG_TAG, "call listener registering")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 telephonyCallback =
@@ -50,7 +53,7 @@ class CallListener(
     }
 
     fun unregister(){
-        if (isRegistered && PermissionHelper.checkCallPermission(context)) {
+        if (isRegistered && callPermissionChecker.hasPermission(context)) {
             Log.i(LOG_TAG, "call listener unregistered")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 telephonyCallback?.let {

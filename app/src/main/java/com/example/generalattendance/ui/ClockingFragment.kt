@@ -7,7 +7,6 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,9 +41,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.CallListener
 import com.example.generalattendance.Clocking
-import com.example.generalattendance.PermissionHelper
 import com.example.generalattendance.R
 import com.example.generalattendance.RevertSettingService
+import com.example.generalattendance.permission.CallPermissionChecker
+import com.example.generalattendance.permission.PermissionChecker
+import com.example.generalattendance.permission.PermissionHelper
 import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,9 +56,10 @@ private const val LOG_TAG = "Clocking"
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel){
     val context = LocalContext.current
+    val callPermissionChecker: PermissionChecker = CallPermissionChecker()
     val appDataStorage = remember { AppDataStorage(context) }
     var isCallStateIdle by remember{ mutableStateOf(false) }
-    var isCallPermissionGranted by remember { mutableStateOf(PermissionHelper.checkCallPermission(context)) }
+    var isCallPermissionGranted by remember { mutableStateOf(callPermissionChecker.hasPermission(context)) }
     val callListener = remember {
         CallListener(
             context = context,
