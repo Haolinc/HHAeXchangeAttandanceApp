@@ -56,7 +56,7 @@ private const val LOG_TAG = "Clocking"
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel){
     val context = LocalContext.current
-    val callPermissionChecker: PermissionChecker = CallPermissionChecker()
+    val callPermissionChecker: PermissionChecker = remember{ CallPermissionChecker() }
     val appDataStorage = remember { AppDataStorage(context) }
     var isCallStateIdle by remember{ mutableStateOf(false) }
     var isCallPermissionGranted by remember { mutableStateOf(callPermissionChecker.hasPermission(context)) }
@@ -81,37 +81,32 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
             }
         }
     }
-    DisposableEffect(isCallPermissionGranted) {
-        callListener.register()
-        onDispose {
-            callListener.unregister()
-        }
-    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> {
-                    Log.i(LOG_TAG, "Register at onResume")
-                    callListener.register()
+    if (isCallPermissionGranted) {
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> {
+                        Log.i(LOG_TAG, "Unregister at onPause")
+                        callListener.unregister()
+                    }
+
+                    Lifecycle.Event.ON_RESUME -> {
+                        Log.i(LOG_TAG, "Register at onResume")
+                        callListener.register()
+                    }
+                    else -> Unit
                 }
-                Lifecycle.Event.ON_PAUSE -> {
-                    Log.i(LOG_TAG, "Unregister at onPause")
-                    callListener.unregister()
-                }
-                Lifecycle.Event.ON_STOP -> {
-                    Log.i(LOG_TAG, "Unregister at onStop")
-                    callListener.unregister()
-                }
-                else -> Unit
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+                callListener.unregister()
             }
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            Log.i(LOG_TAG, "Lifecycle Owner Observer Removed")
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
     }
+
     val workNumList by viewModel.getWorkNumList().observeAsState(emptyList())
     val dialNumber by viewModel.getDialNum().observeAsState("")
     val employeeNumber by viewModel.getEmployeeNum().observeAsState("")
@@ -133,7 +128,10 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1.5f).fillMaxWidth().padding(10.dp)
+            modifier = Modifier
+                .weight(1.5f)
+                .fillMaxWidth()
+                .padding(10.dp)
         ){
             val emptyDefaultText = stringResource(R.string.fragment_clocking_content_text_default)
             // ----Employee Number, Dial Number----
