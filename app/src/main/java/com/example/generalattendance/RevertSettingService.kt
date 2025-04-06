@@ -33,7 +33,7 @@ class RevertSettingService : Service() {
         callListener =
             CallListener(
                 context = this,
-                onCallStateIdle = {
+                onCallStateIdleFunction = {
                     Log.d("RevertSettingService", "Telephony Call Back Idle")
                     Settings.System.putInt(contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, defaultScreenTimeout!!)
                     Log.d("RevertSettingService", "Changed back timeout: ${Settings.System.getInt(contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)}")

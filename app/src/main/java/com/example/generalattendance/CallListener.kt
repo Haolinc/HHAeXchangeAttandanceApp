@@ -6,18 +6,21 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import android.util.Log
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val LOG_TAG = "Call Listener"
 
 class CallListener(
     private val context: Context,
-    private val onCallStateIdle: () -> Unit = {},
-    private val onCallStateOffHook: () -> Unit = {},
-    private val onCallStateRinging: () -> Unit = {}
+    private val onCallStateIdleFunction: () -> Unit = {},
+    private val onCallStateOffHookFunction: () -> Unit = {},
+    private val onCallStateRingingFunction: () -> Unit = {}
 ) {
     private val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-    private var telephonyCallback: TelephonyCallback? = null
-    private var phoneStateListener: PhoneStateListener? = null
+    @VisibleForTesting
+    internal var telephonyCallback: TelephonyCallback? = null
+    @VisibleForTesting
+    internal var phoneStateListener: PhoneStateListener? = null
     private var isRegistered = false
 
     fun register(){
@@ -71,9 +74,9 @@ class CallListener(
 
     private fun processCallStateFunction(state: Int){
         when (state){
-            TelephonyManager.CALL_STATE_IDLE -> onCallStateIdle()
-            TelephonyManager.CALL_STATE_OFFHOOK -> onCallStateOffHook()
-            TelephonyManager.CALL_STATE_RINGING -> onCallStateRinging()
+            TelephonyManager.CALL_STATE_IDLE -> onCallStateIdleFunction()
+            TelephonyManager.CALL_STATE_OFFHOOK -> onCallStateOffHookFunction()
+            TelephonyManager.CALL_STATE_RINGING -> onCallStateRingingFunction()
             else -> {}
         }
     }

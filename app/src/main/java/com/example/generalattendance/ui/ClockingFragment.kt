@@ -44,7 +44,6 @@ import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
 import com.example.generalattendance.RevertSettingService
 import com.example.generalattendance.permission.CallPermissionChecker
-import com.example.generalattendance.permission.PermissionChecker
 import com.example.generalattendance.permission.PermissionHelper
 import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -62,9 +61,9 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
     val callListener = remember {
         CallListener(
             context = context,
-            onCallStateIdle = {isCallStateIdle = true; Log.i(LOG_TAG, "isCallStateIdle to true")},
-            onCallStateOffHook = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")},
-            onCallStateRinging = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")}
+            onCallStateIdleFunction = {isCallStateIdle = true; Log.i(LOG_TAG, "isCallStateIdle to true")},
+            onCallStateOffHookFunction = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")},
+            onCallStateRingingFunction = {isCallStateIdle = false; Log.i(LOG_TAG, "isCallStateIdle to false")}
         )
     }
     // Fetch permission if not granted
