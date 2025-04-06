@@ -56,10 +56,9 @@ private const val LOG_TAG = "Clocking"
 @Composable
 fun ClockingFragment(viewModel: EmployeeInfoViewModel){
     val context = LocalContext.current
-    val callPermissionChecker: PermissionChecker = remember{ CallPermissionChecker() }
     val appDataStorage = remember { AppDataStorage(context) }
     var isCallStateIdle by remember{ mutableStateOf(false) }
-    var isCallPermissionGranted by remember { mutableStateOf(callPermissionChecker.hasPermission(context)) }
+    var isCallPermissionGranted by remember { mutableStateOf(CallPermissionChecker().hasPermission(context)) }
     val callListener = remember {
         CallListener(
             context = context,
@@ -81,9 +80,8 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
             }
         }
     }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
     if (isCallPermissionGranted) {
+        val lifecycleOwner = LocalLifecycleOwner.current
         DisposableEffect(lifecycleOwner) {
             val observer = LifecycleEventObserver { _, event ->
                 when (event) {
@@ -101,6 +99,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
             }
             lifecycleOwner.lifecycle.addObserver(observer)
             onDispose {
+                Log.i(LOG_TAG, "Remove observer and unregister call listener at onDispose")
                 lifecycleOwner.lifecycle.removeObserver(observer)
                 callListener.unregister()
             }
