@@ -1,13 +1,9 @@
 package com.example.generalattendance
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,19 +22,11 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -47,14 +35,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.generalattendance.enums.RouteEnum
+import com.example.generalattendance.permission.PermissionHelper
 import com.example.generalattendance.ui.ClockingFragment
 import com.example.generalattendance.ui.EmployeeInfoFragment
-import com.example.generalattendance.ui.EmployeeInfoViewModel
+import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
 import com.example.generalattendance.ui.LanguageFragment
 import com.example.generalattendance.ui.NavigationData
 import com.example.generalattendance.ui.PermissionGuideFragment
 import com.example.generalattendance.ui.SettingFragment
-import com.example.generalattendance.ui.UIViewModel
+import com.example.generalattendance.viewmodels.UIViewModel
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -70,61 +59,26 @@ class MainActivity : ComponentActivity() {
             NavigationData(RouteEnum.PERMISSION.name, R.string.PermissionFragment)
         )
 
-    private val permissionList =
-        arrayOf(
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.CALL_PHONE
-        )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted ->
+            PermissionHelper.storeResult(!isGranted.containsValue(false)) // Delegate to Helper
+        }
+        PermissionHelper.initializeLauncher(permissionLauncher)
         enableEdgeToEdge()
         setContent {
             AppNavigation()
         }
     }
 
-    private fun checkCallPermission(): Boolean {
-        return permissionList
-            .map{ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED}
-            .all{it}
-    }
 
     @Composable
     fun AppNavigation() {
-        // Permission
-        var isCallPermissionGranted by remember { mutableStateOf(checkCallPermission()) }
-        val lifecycleOwner = LocalLifecycleOwner.current
-        if (!isCallPermissionGranted) {
-            DisposableEffect(lifecycleOwner) {
-                val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) {
-                        isCallPermissionGranted = checkCallPermission()
-                    }
-                }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose {
-                    lifecycleOwner.lifecycle.removeObserver(observer)
-                }
-            }
-        }
-        val requestPermissionLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestMultiplePermissions(),
-            onResult = { isGrantedMap ->
-                isCallPermissionGranted = !isGrantedMap.containsValue(false) // Update the State object's value
-            }
-        )
-        LaunchedEffect(key1 = true) {
-            if (!isCallPermissionGranted) {
-                requestPermissionLauncher.launch(permissionList)
-            }
-        }
-
         // Main Navigation UI
         val navController = rememberNavController()
         val employeeInfoViewModel: EmployeeInfoViewModel = viewModel()
         val uiViewModel: UIViewModel = viewModel()
-        val appDataStorage = AppDataStorage(this)
+        val appDataStorage = remember{ AppDataStorage(this) }
         val appLocalization by uiViewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
         setAppLocale(appLocalization)
 
@@ -143,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     .padding(paddingValue),
             ) {
                 composable(RouteEnum.CLOCKING.name) {
-                    ClockingFragment(employeeInfoViewModel, isCallPermissionGranted)
+                    ClockingFragment(employeeInfoViewModel)
                 }
                 composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)
@@ -186,10 +140,11 @@ class MainActivity : ComponentActivity() {
     fun BottomNavigation(navController: NavController) {
         val selectedIcons = listOf(Icons.Filled.Call, Icons.Filled.AccountCircle, Icons.Filled.Settings)
         val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
+        val currentNavigationTop = navBackStackEntry?.destination
+        val currentRoute = currentNavigationTop?.route
         val routeList = bottomNavigationList.map{navData -> navData.route}
         AnimatedVisibility(
-            visible = routeList.contains(currentDestination?.route),
+            visible = routeList.contains(currentRoute),
             enter = EnterTransition.None,
             exit = ExitTransition.None,
             content = {
@@ -206,11 +161,13 @@ class MainActivity : ComponentActivity() {
                             {
                                 Text(stringResource(item.stringResourceId))
                             },
-                            selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                            selected = currentNavigationTop?.hierarchy?.any { it.route == item.route } == true,
                             onClick = {
-                                if (currentDestination!!.route != item.route) {
-                                    navController.popBackStack()
+                                if (currentRoute != item.route) {
                                     navController.navigate(item.route) {
+                                        popUpTo(currentRoute!!){
+                                            inclusive = true
+                                        }
                                         launchSingleTop = true
                                     }
                                 }
