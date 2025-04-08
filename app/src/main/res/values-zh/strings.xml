@@ -9,7 +9,7 @@
     <string name="EmployeeInfoFragment">员工信息</string>
     <string name="SettingFragment">设置</string>
     <string name="LanguageFragment">语言</string>
-    <string name="PermissionFragment">权限</string>
+    <string name="PermissionFragment">更改系统设置权限</string>
 
     <!--Clocking Fragment-->
     <!--Top Section-->
@@ -33,7 +33,7 @@
     <string name="error_text_dial_number">请输入10位数拨打号码</string>
     <string name="error_text_work_number">请选择至少一组工作项目代号</string>
     <string name="error_text_call_permission">请允许电话呼叫权限以使用此程序</string>
-    <string name="error_text_work_number_greater_than_screen_timeout">打钟时可能会超出系统息屏时间, 打钟通话时请按住屏幕防止息屏或者前往设置 -> 权限给予本程序覆写设置权限</string>
+    <string name="error_text_work_number_greater_than_screen_timeout">打钟时可能会超出系统息屏时间, 打钟通话时请按住屏幕防止息屏或者前往“设置” -> “更改系统设置权限”给予本程序覆写设置权限</string>
 
     <!--Toast Messages-->
     <string name="toast_permission_granted">成功授予程序权限</string>
