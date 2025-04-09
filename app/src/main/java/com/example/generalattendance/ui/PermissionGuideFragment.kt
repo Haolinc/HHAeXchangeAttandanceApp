@@ -1,17 +1,21 @@
 package com.example.generalattendance.ui
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,34 +53,48 @@ fun PermissionGuideFragment(onNavigate: () -> Unit){
             }
         }
     }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-//        modifier = Modifier.fillMaxSize()
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp, vertical = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ){
-        Image(
-            painter =  painterResource(R.drawable.write_setting_guide_image),
-            contentDescription = "Write Setting Guide Image",
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "back arrow",
             modifier = Modifier
+                .padding(start = 15.dp, top = 15.dp)
+                .size(30.dp)
+                .clickable {
+                    onNavigate()
+                }
         )
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = stringResource(R.string.fragment_permission_rational_text),
-            fontSize = 20.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = {
-                PermissionHelper.requestWriteSettingPermission(context)
-            },
-            modifier = Modifier.fillMaxWidth(),
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp, vertical = 125.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ){
-            Text(text = stringResource(R.string.fragment_permission_request_permission_button_text), fontSize = 20.sp)
+            Image(
+                painter =  painterResource(R.drawable.write_setting_guide_image),
+                contentDescription = "Write Setting Guide Image",
+                modifier = Modifier
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = stringResource(R.string.fragment_permission_rational_text),
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    PermissionHelper.requestWriteSettingPermission(context)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ){
+                Text(text = stringResource(R.string.fragment_permission_request_permission_button_text), fontSize = 20.sp)
+            }
         }
     }
+
 }
