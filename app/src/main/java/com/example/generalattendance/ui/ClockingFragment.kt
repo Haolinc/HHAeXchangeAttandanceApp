@@ -164,6 +164,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
                 ){
                     val employeeNumErrorText =
                         if (employeeNumber.length < 6)
