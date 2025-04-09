@@ -38,4 +38,8 @@
     <!--Toast Messages-->
     <string name="toast_permission_granted">Permission Granted!</string>
     <string name="toast_permission_already_granted">App Already Have Permission!</string>
+
+    <!--Permission Guide Fragment-->
+    <string name="fragment_permission_rational_text">Click on \"Request Permission\" and press on toggle button as shown in the image to enable write setting permission</string>
+    <string name="fragment_permission_request_permission_button_text">Request Permission</string>
 </resources>

@@ -38,4 +38,8 @@
     <!--Toast Messages-->
     <string name="toast_permission_granted">成功授予程序权限</string>
     <string name="toast_permission_already_granted">此程序权限已被授予</string>
+
+    <!--Permission Guide Fragment-->
+    <string name="fragment_permission_rational_text">请点击“申请权限”，然后点击“允许权限”按钮如图所示以授予此程序更改系统设置权限</string>
+    <string name="fragment_permission_request_permission_button_text">申请权限</string>
 </resources>
