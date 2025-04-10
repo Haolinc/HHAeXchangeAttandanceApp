@@ -95,6 +95,8 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(paddingValue),
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None }
             ) {
                 composable(RouteEnum.CLOCKING.name) {
                     ClockingFragment(employeeInfoViewModel)
