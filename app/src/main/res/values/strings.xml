@@ -9,7 +9,7 @@
     <string name="EmployeeInfoFragment">Employee Info</string>
     <string name="SettingFragment">Setting</string>
     <string name="LanguageFragment">Language</string>
-    <string name="PermissionFragment">Permission</string>
+    <string name="PermissionFragment">Change System Setting Permission</string>
 
     <!--Clocking Fragment-->
     <!--Top Section-->
@@ -33,9 +33,13 @@
     <string name="error_text_dial_number">Please Enter 10 Digit Dial Number</string>
     <string name="error_text_work_number">Please Select At Least One Work Number</string>
     <string name="error_text_call_permission">Please Allow Phone Call Permission To Use App</string>
-    <string name="error_text_work_number_greater_than_screen_timeout">Call Duration Might Exceed The Screen Timeout, Please Hold The Screen While At Call Or Grant Setting Permission To This App In Setting -> Permission</string>
+    <string name="error_text_work_number_greater_than_screen_timeout">Call Duration Might Exceed The Screen Timeout, Please Hold The Screen While At Call Or Grant Setting Permission To This App In \"Setting\" -> \"Change System Setting Permission\"</string>
 
     <!--Toast Messages-->
     <string name="toast_permission_granted">Permission Granted!</string>
     <string name="toast_permission_already_granted">App Already Have Permission!</string>
+
+    <!--Permission Guide Fragment-->
+    <string name="fragment_permission_rational_text">Click on \"Request Permission\" and press on toggle button as shown in the image to enable write setting permission</string>
+    <string name="fragment_permission_request_permission_button_text">Request Permission</string>
 </resources>

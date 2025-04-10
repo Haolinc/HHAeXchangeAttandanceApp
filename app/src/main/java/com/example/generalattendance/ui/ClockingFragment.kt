@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -124,75 +127,92 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
     ){
         // ----Info Top----
         Column(
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .weight(1.5f)
+                .weight(1.25f)
                 .fillMaxWidth()
-                .padding(10.dp)
+                .padding(vertical = 5.dp, horizontal = 10.dp)
         ){
             val emptyDefaultText = stringResource(R.string.fragment_clocking_content_text_default)
-            // ----Employee Number, Dial Number----
+            // ----Employee Number, Dial Number Section----
             // Split into 2 sections top Employee Number and Dial Number, bottom Work numbers
             Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.weight(1.75f)
+                modifier = Modifier.weight(1.25f)
             ){
-                // ----Employee Number and Dial Number Title----
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
+                        .fillMaxWidth()
                 ){
-                    TopSectionTitleText(content = stringResource(R.string.fragment_clocking_header_employee_number), modifier = Modifier.weight(1f))
-                    TopSectionTitleText(content = stringResource(R.string.fragment_clocking_header_dial_number), modifier = Modifier.weight(1f))
-                }
-                // ----Employee Number and Dial Number Content----
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ){
-                    val employeeNumText = if (employeeNumber == "") emptyDefaultText else employeeNumber
-                    EmployeeInfoSection(content = employeeNumText, modifier = Modifier.weight(1f))
-                    val dialNumText = if (dialNumber == "") emptyDefaultText else dialNumber
-                    EmployeeInfoSection(content = dialNumText, modifier = Modifier.weight(1f))
-                }
+                    // ----Employee Number----
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxSize()
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            TopSectionTitleText(
+                                content = stringResource(R.string.fragment_clocking_header_employee_number),
+                                modifier = Modifier.weight(1f)
+                            )
+                            val employeeNumText =
+                                if (employeeNumber == "") emptyDefaultText else employeeNumber
+                            EmployeeInfoSection(content = employeeNumText, modifier = Modifier.weight(1f))
+                            val employeeNumErrorText =
+                                if (employeeNumber.length < 6)
+                                    stringResource(R.string.error_text_employee_number)
+                                else
+                                    ""
+                            ErrorText(employeeNumErrorText, Modifier.weight(1f))
+                        }
+                    }
 
-                // ----Employee Number and Dial Number Error Text----
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ){
-                    val employeeNumErrorText =
-                        if (employeeNumber.length < 6)
-                            stringResource(R.string.error_text_employee_number)
-                        else
-                            ""
-                    ErrorText(employeeNumErrorText, Modifier.weight(1f))
-                    val dialNumErrorText =
-                        if (dialNumber.length < 10)
-                            stringResource(R.string.error_text_dial_number)
-                        else
-                            ""
-                    ErrorText(dialNumErrorText, Modifier.weight(1f))
+                    // ----Dial Number----
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxSize()
+                    ){
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ){
+                            TopSectionTitleText(
+                                content = stringResource(R.string.fragment_clocking_header_dial_number),
+                                modifier = Modifier.weight(1f)
+                            )
+                            val dialNumText = if (dialNumber == "") emptyDefaultText else dialNumber
+                            EmployeeInfoSection(content = dialNumText, modifier = Modifier.weight(1f))
+                            val dialNumErrorText =
+                                if (dialNumber.length < 10)
+                                    stringResource(R.string.error_text_dial_number)
+                                else
+                                    ""
+                            ErrorText(dialNumErrorText, Modifier.weight(1f))
+                        }
+                    }
+
                 }
             }
 
             // ----Work Number----
             Column(
-                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.weight(1.5f)
+                modifier = Modifier.weight(1.7f)
             ){
-                TopSectionTitleText(content = stringResource(R.string.fragment_clocking_header_work_number), modifier = Modifier.weight(1f))
-                val workNumText = if (workNumList.isEmpty()) emptyDefaultText else workNumList.sorted().toString()
-                EmployeeInfoSection(content = workNumText, modifier = Modifier.weight(3f))
+                TopSectionTitleText(content = stringResource(R.string.fragment_clocking_header_work_number), modifier = Modifier)
+                Spacer(modifier = Modifier.height(5.dp))
+                val workNumText = if (workNumList.isEmpty()) emptyDefaultText else workNumList.sorted().joinToString()
+                EmployeeInfoSection(content = workNumText, modifier = Modifier)
                 // to save some more space
                 if (workNumList.isEmpty())
-                    ErrorText(stringResource(R.string.error_text_work_number), Modifier.weight(1f))
+                    ErrorText(stringResource(R.string.error_text_work_number), Modifier)
             }
 
         }
@@ -201,7 +221,7 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(0.75f)
         ){
             if (calculateTotalWaitTime(false, workNumList.size)*1000 > getSystemScreenTimeout(context) && !Settings.System.canWrite(context))
                 ErrorText(text = stringResource(R.string.error_text_work_number_greater_than_screen_timeout), Modifier)
@@ -283,10 +303,10 @@ fun EmployeeInfoSection(content: String, modifier: Modifier){
         modifier = modifier
     ){
         Box(
-            modifier = Modifier.border(2.dp, Color.Blue),
+            modifier = Modifier.border(2.dp, Color.Blue).padding(horizontal = 8.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
         ){
-            Text(text = content, fontSize = 20.sp, modifier = modifier.padding(10.dp), textAlign = TextAlign.Center)
+            Text(text = content, fontSize = 20.sp, textAlign = TextAlign.Center)
         }
     }
 }
@@ -298,7 +318,7 @@ fun TopSectionTitleText(content: String, modifier: Modifier){
         fontSize = 25.sp,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
-        modifier = modifier
+        modifier = modifier.wrapContentHeight()
     )
 }
 
