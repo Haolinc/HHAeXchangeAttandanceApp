@@ -42,6 +42,7 @@ class RevertSettingService : Service() {
                 }
             )
 
+        callListener.register()
         // Start the service in the foreground
         startForeground(1, notification)
 
