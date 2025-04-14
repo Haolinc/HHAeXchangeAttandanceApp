@@ -41,9 +41,6 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
-
-      - name: Grant permission to gradlew
-        run: chmod +x gradlew
   
       - name: Run tests
         run: ./gradlew test
@@ -61,9 +58,6 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
-
-      - name: Grant permission to gradlew
-        run: chmod +x gradlew
   
       - name: Set up Java JDK 17
         uses: actions/setup-java@v4
@@ -77,5 +71,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AttendanceApp-debug.apk
+          name: AttendanceApp-debug
           path: app/build/outputs/apk/debug/app-debug.apk
