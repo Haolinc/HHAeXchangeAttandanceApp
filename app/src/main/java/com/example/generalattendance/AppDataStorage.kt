@@ -7,13 +7,17 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
+import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "data")
 
-class AppDataStorage(private val context: Context) {
+@Singleton
+class AppDataStorage @Inject constructor(@ApplicationContext private val context: Context) {
     val EMPLOYEE_NUM = stringPreferencesKey("employee_num")
     val DIAL_NUM = stringPreferencesKey("dial_num")
     val WORK_NUM = stringPreferencesKey("work_num")

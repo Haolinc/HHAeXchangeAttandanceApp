@@ -1,14 +1,18 @@
 package com.example.generalattendance.viewmodels
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.distinctUntilChanged
 import com.example.generalattendance.AppDataStorage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EmployeeInfoViewModel(application: Application) : AndroidViewModel(application) {
-    private val appDataStorage = AppDataStorage(getApplication())
+@HiltViewModel
+class EmployeeInfoViewModel @Inject constructor(private val appDataStorage: AppDataStorage) : ViewModel() {
     private val _mutableWorkNumList = MutableLiveData(appDataStorage.getWorkNumList)
     private val _mutableEmployeeNum = MutableLiveData(appDataStorage.getEmployeeNum)
     private val _mutableDialNum = MutableLiveData(appDataStorage.getDialNum)
@@ -20,6 +24,9 @@ class EmployeeInfoViewModel(application: Application) : AndroidViewModel(applica
 
     fun setWorkNumList(workNumList: List<String>) {
         _mutableWorkNumList.value = workNumList
+        CoroutineScope(Dispatchers.IO).launch {
+            appDataStorage.setWorkNumList(workNumList)
+        }
     }
 
     //Employee Number Functions
@@ -28,7 +35,13 @@ class EmployeeInfoViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun setEmployeeNum (employeeNum: String) {
-        _mutableEmployeeNum.value = employeeNum
+        if (employeeNum != _mutableEmployeeNum.value) {
+            _mutableEmployeeNum.value = employeeNum
+            if (employeeNum.length == 6)
+                CoroutineScope(Dispatchers.IO).launch {
+                    appDataStorage.setEmployeeNum(employeeNum)
+                }
+        }
     }
 
     //Employee Number Functions
@@ -37,7 +50,13 @@ class EmployeeInfoViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun setDialNum (dialNum: String) {
-        _mutableDialNum.value = dialNum
+        if (dialNum != _mutableDialNum.value) {
+            _mutableDialNum.value = dialNum
+            if (dialNum.length == 10)
+                CoroutineScope(Dispatchers.IO).launch {
+                    appDataStorage.setDialNum(dialNum)
+                }
+        }
     }
 
 }

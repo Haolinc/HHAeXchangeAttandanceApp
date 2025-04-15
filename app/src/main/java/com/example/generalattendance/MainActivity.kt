@@ -44,8 +44,10 @@ import com.example.generalattendance.ui.NavigationData
 import com.example.generalattendance.ui.PermissionGuideFragment
 import com.example.generalattendance.ui.SettingFragment
 import com.example.generalattendance.viewmodels.UIViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val bottomNavigationList =
         listOf(
@@ -99,7 +101,7 @@ class MainActivity : ComponentActivity() {
                 exitTransition = { ExitTransition.None }
             ) {
                 composable(RouteEnum.CLOCKING.name) {
-                    ClockingFragment(employeeInfoViewModel)
+                    ClockingFragment(employeeInfoViewModel, uiViewModel)
                 }
                 composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)
