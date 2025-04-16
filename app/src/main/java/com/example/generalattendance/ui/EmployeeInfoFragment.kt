@@ -3,22 +3,13 @@ package com.example.generalattendance.ui
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,19 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
-import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.R
 import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 private val personalCareNumList = listOf("100", "101", "102", "103", "106", "107", "108", "109", "110", "111", "112", "113", "114", "115", "116", "117")
@@ -77,7 +62,6 @@ fun EmployeeInfoFragment(viewModel: EmployeeInfoViewModel){
 
 @Composable
 fun SelectionPage(){
-    val appDataStorage = AppDataStorage(LocalContext.current)
     val currentViewModel = LocalViewModel.current
     val employeeNum by currentViewModel.getEmployeeNum().observeAsState("")
     val dialNum by currentViewModel.getDialNum().observeAsState("")
@@ -106,11 +90,6 @@ fun SelectionPage(){
                 onValueChange = {
                     if (it.length <= 6) {
                         text = it
-                        if (it.length == 6) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                appDataStorage.setEmployeeNum(it)
-                            }
-                        }
                         currentViewModel.setEmployeeNum(it)
                     }
                     isError = it.length < 6
@@ -141,11 +120,6 @@ fun SelectionPage(){
                 onValueChange = {
                     if (it.length <= 10) {
                         text = it
-                        if (it.length == 10) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                appDataStorage.setDialNum(it)
-                            }
-                        }
                         currentViewModel.setDialNum(it)
                     }
                     isError = it.length < 10
@@ -173,7 +147,7 @@ fun SelectionPage(){
 
         workNumMap.map{(headerText, currentWorkNumList) ->
             item (headerText){
-                WorkNumSelection(headerText, currentWorkNumList, appDataStorage)
+                WorkNumSelection(headerText, currentWorkNumList)
             }
         }
     }
@@ -181,7 +155,7 @@ fun SelectionPage(){
 }
 
 @Composable
-fun ButtonGrid(buttonTextList: List<String>, appDataStorage: AppDataStorage){
+fun ButtonGrid(buttonTextList: List<String>){
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,7 +167,7 @@ fun ButtonGrid(buttonTextList: List<String>, appDataStorage: AppDataStorage){
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 rowItems.forEach { item ->
-                    DefaultButton(text = item, appDataStorage = appDataStorage)
+                    DefaultButton(text = item)
                 }
             }
         }
@@ -201,10 +175,10 @@ fun ButtonGrid(buttonTextList: List<String>, appDataStorage: AppDataStorage){
 }
 
 @Composable
-fun DefaultButton(text: String, appDataStorage: AppDataStorage){
+fun DefaultButton(text: String){
     val currentViewModel = LocalViewModel.current
     val workNumList by currentViewModel.getWorkNumList().observeAsState(emptyList())
-    Button(onClick = { selectWorkNum(text, currentViewModel, workNumList, appDataStorage) },
+    Button(onClick = { selectWorkNum(text, currentViewModel, workNumList) },
         modifier = Modifier.padding(all = 5.dp).width(100.dp),
         colors = if (workNumList.contains(text)) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(Color.LightGray)
     ){
@@ -213,13 +187,10 @@ fun DefaultButton(text: String, appDataStorage: AppDataStorage){
 }
 
 
-private fun selectWorkNum(currentText: String, currentViewModel: EmployeeInfoViewModel, workList: List<String>, appDataStorage: AppDataStorage){
+private fun selectWorkNum(currentText: String, currentViewModel: EmployeeInfoViewModel, workList: List<String>){
     val existInList = workList.contains(currentText)
     val newWorkList = if (existInList) workList - currentText else workList + currentText
     currentViewModel.setWorkNumList(newWorkList)
-    CoroutineScope(Dispatchers.IO).launch {
-        appDataStorage.setWorkNumList(newWorkList)
-    }
 }
 
 @Composable
@@ -228,7 +199,7 @@ fun GeneralText(text: String){
 }
 
 @Composable
-fun WorkNumSelection(headerText: String, currentWorkNumList: List<String>, appDataStorage: AppDataStorage){
+fun WorkNumSelection(headerText: String, currentWorkNumList: List<String>){
     GeneralText(headerText)
-    ButtonGrid(currentWorkNumList, appDataStorage)
+    ButtonGrid(currentWorkNumList)
 }

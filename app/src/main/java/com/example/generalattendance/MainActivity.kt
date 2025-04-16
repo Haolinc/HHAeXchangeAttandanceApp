@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,8 +43,10 @@ import com.example.generalattendance.ui.NavigationData
 import com.example.generalattendance.ui.PermissionGuideFragment
 import com.example.generalattendance.ui.SettingFragment
 import com.example.generalattendance.viewmodels.UIViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val bottomNavigationList =
         listOf(
@@ -78,8 +79,7 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val employeeInfoViewModel: EmployeeInfoViewModel = viewModel()
         val uiViewModel: UIViewModel = viewModel()
-        val appDataStorage = remember{ AppDataStorage(this) }
-        val appLocalization by uiViewModel.getLanguage().observeAsState(appDataStorage.getLanguage)
+        val appLocalization by uiViewModel.getLanguage().observeAsState("en")
         setAppLocale(appLocalization)
 
         Scaffold (bottomBar = {
@@ -88,7 +88,7 @@ class MainActivity : ComponentActivity() {
             NavHost(
                 navController = navController,
                 startDestination =
-                    if (appDataStorage.getIsFirstTime)
+                    if (uiViewModel.getIsFirstTime().value == true)
                         "${RouteEnum.LANGUAGE.name}/${RouteEnum.CLOCKING.name}"
                     else
                         RouteEnum.CLOCKING.name,
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                 exitTransition = { ExitTransition.None }
             ) {
                 composable(RouteEnum.CLOCKING.name) {
-                    ClockingFragment(employeeInfoViewModel)
+                    ClockingFragment(employeeInfoViewModel, uiViewModel)
                 }
                 composable(RouteEnum.EMPLOYEE_INFO.name) {
                     EmployeeInfoFragment(employeeInfoViewModel)

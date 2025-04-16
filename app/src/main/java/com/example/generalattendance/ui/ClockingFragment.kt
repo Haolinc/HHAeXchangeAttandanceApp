@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.generalattendance.AppDataStorage
 import com.example.generalattendance.CallListener
 import com.example.generalattendance.Clocking
 import com.example.generalattendance.R
@@ -49,18 +48,16 @@ import com.example.generalattendance.RevertSettingService
 import com.example.generalattendance.permission.CallPermissionChecker
 import com.example.generalattendance.permission.PermissionHelper
 import com.example.generalattendance.viewmodels.EmployeeInfoViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.generalattendance.viewmodels.UIViewModel
 
 private const val LOG_TAG = "Clocking"
 
 @Composable
-fun ClockingFragment(viewModel: EmployeeInfoViewModel){
+fun ClockingFragment(employeeInfoViewModel: EmployeeInfoViewModel, uiViewModel: UIViewModel){
     val context = LocalContext.current
-    val appDataStorage = remember { AppDataStorage(context) }
     var isCallStateIdle by remember{ mutableStateOf(false) }
     var isCallPermissionGranted by remember { mutableStateOf(CallPermissionChecker().hasPermission(context)) }
+    val isFirstTime by uiViewModel.getIsFirstTime().observeAsState(true)
     val callListener = remember {
         CallListener(
             context = context,
@@ -76,10 +73,8 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
                 isCallPermissionGranted = it
             }
         }
-        CoroutineScope(Dispatchers.IO).launch{
-            if (appDataStorage.getIsFirstTime){
-                appDataStorage.setIsFirstTime(false)
-            }
+        if (isFirstTime){
+            uiViewModel.setIsFirstTime(false)
         }
     }
     if (isCallPermissionGranted) {
@@ -108,9 +103,9 @@ fun ClockingFragment(viewModel: EmployeeInfoViewModel){
         }
     }
 
-    val workNumList by viewModel.getWorkNumList().observeAsState(emptyList())
-    val dialNumber by viewModel.getDialNum().observeAsState("")
-    val employeeNumber by viewModel.getEmployeeNum().observeAsState("")
+    val workNumList by employeeInfoViewModel.getWorkNumList().observeAsState(emptyList())
+    val dialNumber by employeeInfoViewModel.getDialNum().observeAsState("")
+    val employeeNumber by employeeInfoViewModel.getEmployeeNum().observeAsState("")
     val buttonState by remember (workNumList, employeeNumber, dialNumber, isCallPermissionGranted, isCallStateIdle) {
         derivedStateOf {
             workNumList.isNotEmpty() &&
